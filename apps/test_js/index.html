@@ -1,0 +1,39 @@
+<div id='app_$app_id'>
+<form name='test_url_$app_id'>
+<table>
+  <tr>
+    <th>URL</th>
+    <td><input type='text' length=40 name='url' value='https://httpbin.org/get' /></td>
+  </tr>
+  <tr>
+    <th>Method</th>
+    <td>
+      <select name='method'>
+        <option value='GET' selected>GET</option>
+        <option value='POST'>POST</option>
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <th></th>
+    <td>
+      <input type='button' value='Fetch' onclick='fetch_page(this.form["url"].value, this.form["method"].value)' />
+    </td>
+  </tr>
+</table>
+
+<textarea name='res_$app_id' cols='40' row='10'></textarea>
+
+</form>
+
+<script type='text/javascript'>
+function fetch_page(url, method) {
+  proxy(post_results, method, url, undefined, undefined, undefined);
+}
+function post_results(data) {
+  console.log('post_results');
+  console.log(data);
+  document.forms['test_url_$app_id']['res_$app_id'].value += JSON.stringify(data);
+}
+</script>
+</div>

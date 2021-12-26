@@ -1,0 +1,46 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang='en'>
+<head>
+  <title>HomeBase-web</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" type="text/css" href="css/homebase.css" />
+  <link rel="stylesheet" href="css/jquery-ui.css" />
+  <link rel="stylesheet" href="css/jquery-ui.theme.css" />
+  <link rel="stylesheet" href="css/jquery-ui.structure.css" />
+  <script type='text/javascript' src='js/homebase.js' defer></script>
+  <script type='text/javascript' src='js/jquery-3.6.0.min.js'></script>
+  <script type='text/javascript' src='js/jquery-ui.js'></script>
+  <script type='text/javascript' src='js/jquery.websocket-0.0.1.js'></script>
+</head>
+<body>
+<div class='header'>
+<img src='img/homebase.gif' height='24' />
+</div>
+
+<div id='left_panel' class="w3-sidebar w3-bar-block menu">
+  <div>
+    <ul id='app_list'>
+    </ul>
+  </div>
+
+  <div id='post_news'>
+  </div>
+</div> <!-- left_panel -->
+
+<div id='main_panel' class='main'>
+  <div id='app_tabs'>
+    <ul id='apps_list'>
+        <li><a href='#test_tab'>Test Tab</a>
+    </ul>
+    <div id='test_tab'>
+      This is a test tab
+    </div>
+  </div>
+</div> <!-- main_panel -->
+
+<div class='footer'>
+</div>
+
+</body>
+</html>

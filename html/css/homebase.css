@@ -1,0 +1,74 @@
+body {
+  background-color: #111;
+}
+
+.w3-sidebar{height:100%;width:200px;background-color:#fff;position:fixed!important;z-index:1;overflow:auto}
+.w3-bar-block .w3-dropdown-hover,.w3-bar-block .w3-dropdown-click{width:100%}
+.w3-bar-block .w3-dropdown-hover .w3-dropdown-content,.w3-bar-block .w3-dropdown-click .w3-dropdown-content{min-width:100%}
+.w3-bar-block .w3-dropdown-hover .w3-button,.w3-bar-block .w3-dropdown-click .w3-button{width:100%;text-align:left;padding:8px 16px}
+.w3-bar-block .w3-bar-item{width:100%;display:block;padding:8px 16px;text-align:left;border:none;white-space:normal;float:none;outline:0}
+.w3-bar-block.w3-center .w3-bar-item{text-align:center}.w3-block{display:block;width:100%}
+
+
+.header {
+  grid-area: header;
+  background-color: #333;
+  padding: 6px;
+}
+.menu   {
+  grid-area: menu;
+  background-color: #222;
+  color: white;
+}
+.main   { grid-area: main; }
+.right  { grid-area: right; }
+.footer { grid-area: footer; }
+
+.grid-container {
+  display: grid;
+  grid-template-areas:
+    'header header header header header header'
+    'menu main main main right right'
+    'menu footer footer footer footer footer';
+  grid-gap: 10px;
+  background-color: #2196F3;
+  padding: 10px;
+}
+
+.grid-container > div {
+  background-color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  padding: 20px 0;
+  font-size: 30px;
+}
+
+#left_panel {
+  width: 15%;
+}
+
+#app_list {
+
+}
+
+#app_list li a {
+  text-decoration: none;
+  color: #999;
+}
+
+#app_list li a:hover {
+  text-decoration: underline;
+  color: #69f;
+}
+
+#progress {
+
+}
+
+#post_news {
+
+}
+
+#main_panel {
+  margin-left: 15%;
+  border: thick solid black;
+}
