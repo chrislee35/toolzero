@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import sys, time, os, json, logging
+import time, os, json, logging
 from uuid import uuid1 as uuid
 from mimetypes import guess_type
 from threading import Thread
@@ -7,7 +7,7 @@ from homebase import BaseTool
 
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from http.cookies import SimpleCookie as cookie
-from urllib.parse import urlparse, parse_qs, urlunparse, urlencode, parse_qsl
+from urllib.parse import urlparse, parse_qs, urlencode, quote_plus
 import urllib3
 from websocket_server import WebsocketServer
 import ssl
@@ -153,6 +153,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             for callback_id in active_callbacks.keys():
                 if active_callbacks[callback_id]['app_id'] == app_id:
                     if active_callbacks[callback_id].get('thread'):
+                        cb = active_callbacks[callback_id]
                         # shut down the websocket
                         cb['client']['handler'].send_close(1001)
                         # stop the thread
@@ -205,7 +206,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
                         continue
                     reg['path'] = os.path.basename(p)
                     apps_list.append(reg)
-            except json.decoder.JSONDecodeError as e:
+            except json.decoder.JSONDecodeError:
                 print("Invalid JSON for %s" % regfile)
             except Exception as e:
                 print(e)
@@ -317,12 +318,12 @@ def proxy(**kwargs):
         elif kwargs['data_type'] == 'raw':
             encoded_data = kwargs['data'].encode('utf-8')
         elif kwargs['data_type'] == 'urlencode':
-            encoded_data = urllib.parse.quote_plus(kwargs.get('data')).encode('utf-8')
+            encoded_data = quote_plus(kwargs.get('data')).encode('utf-8')
 
     headers = kwargs.get('headers', {'Content-Type': content, 'Accept': accept})
 
     r = http.request(
-        kwargs.get('method', 'GET'),
+        method,
         kwargs['url'],
         body = encoded_data,
         headers = headers
