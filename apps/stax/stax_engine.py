@@ -1,11 +1,14 @@
-import types
+from stax import StaxProcessor
 
 class StaxEngine:
     PROCESSORS = {
         'CLI Input Str': 'stax.processors.interact.CLIInputStr',
         'CLI Print Str': 'stax.processors.interact.CLIPrintStr',
         'Template Transform': 'stax.processors.data.TemplateTransform',
+        'XOR': 'stax.processors.data.XorStreamProcessor',
+        'Copy File': 'stax.processors.file.CopyFileProcessor',
         'Move File': 'stax.processors.file.MoveFileProcessor',
+        'Read File': 'stax.processors.file.ReadFileProcessor',
         'Write File': 'stax.processors.file.WriteFileProcessor',
         'DNS': 'stax.processors.web.DnsProcessor',
         'HTTP': 'stax.processors.web.HttpProcessor',
@@ -17,17 +20,39 @@ class StaxEngine:
 
     def load_pipeline(self, processor_names):
         for pn in processor_names:
-            if not self.PROCESSORS.get(pn):
-                raise ArgumentError("Could not find processor with name: %s" % pn)
-            kls = eval('import %s' % self.PROCESSORS[pn])
-            instance = kls()
-            entry = {
-                'name': pn,
-                'proc': instance,
-                'stax_params': instance.get_parameters(),
-                'params': {}
-            }
-            self.pipeline.append( entry )
+            self.append_processor(pn)
+
+    def _load_app(self, app_name):
+        pathname = '.'.join(app_name.split('.')[0:-1])
+        classname = app_name.split('.')[-1]
+        mod = __import__(pathname, fromlist=[''])
+        klass = eval("mod."+classname)
+        if issubclass(klass, StaxProcessor):
+            return klass
+        return None
+
+    def append_processor(self, processor_name):
+        if not self.PROCESSORS.get(processor_name):
+            raise ValueError("Could not find processor with name: %s" % processor_name)
+        kls = self._load_app(self.PROCESSORS[processor_name])
+        if kls is None:
+            raise ArgumentError("Could not load class for processor: %s -> %s" % (processor_name, self.PROCESSORS[processor_name]))
+        instance = kls()
+        entry = {
+            'name': processor_name,
+            'proc': instance,
+            'stax_params': instance.get_parameters(),
+            'params': {}
+        }
+        previous_processor_name = "__start__"
+        previous_input_type = None
+        if len(self.pipeline) > 0:
+            previous_input_type = self.pipeline[-1]['proc'].OUTPUT_TYPE
+            previous_processor_name = self.pipeline[-1]['name']
+        if instance.INPUT_TYPE != previous_input_type:
+            raise ValueError("Processor %s requires input type %s, but the previous processor, %s, outputs %s" %
+                (processor_name, instance.INPUT_TYPE, previous_processor_name, previous_input_type))
+        self.pipeline.append( entry )
 
     def set_parameter(self, proc_index, parameter, value):
         entry = self.pipeline(proc_index)
@@ -59,26 +84,24 @@ class StaxEngine:
     def run_pipeline(self):
         # at this point all the processors should be initalized and all the parameters set
         # we need to run each processor in order.  if the processor returns, then it is done
-        # if the processor yields, then we need to pass each "record" to the next processor,
-        # run the next processor, then go back to the yielding processor and run it.
+        # if the processor yields, then this is a "stream" interface, pass the generator to the
+        # next processor and let it consume it
         last_output = None
         for i, entry in enumerate(self.pipeline):
             input = {
                 'input': last_output,
                 'params': entry['params']
             }
-            val = entry['proc'].process(input)
-            if type(val) == types.GeneratorType:
-                # get the next processor entry in the pipeline to feed
-                next_entry = self.pipeline[i+1]
-                # read records from the current processor
-                for rec in val:
-                    subinput = {
-                        'input': rec,
-                        'params': next_entry['params']
-                    }
-                    # feed the next process
-                    val2 = next_entry['proc'].process(subinput)
-                    last_output = val2
-            else:
-                last_output = val
+            last_output = entry['proc'].process(input)
+
+if __name__ == "__main__":
+    se = StaxEngine()
+    se.append_processor('CLI Input Str')
+    se.append_processor('Read File')
+    se.append_processor('XOR')
+    se.append_processor('Write File')
+    se.append_processor('Copy File')
+    se.append_processor('CLI Print Str')
+
+    se.cli_set_parameters()
+    se.run_pipeline()

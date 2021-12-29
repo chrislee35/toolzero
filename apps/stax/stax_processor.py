@@ -15,10 +15,8 @@ class StaxProcessor:
     OUTPUT_TYPE = None
 
     def __init__(self):
-        self.ready = False
-        self.done = False
-        self.output = None
-
+        pass
+        
     @classmethod
     def create(cls, **kwargs):
         if not cls.INITIALIZED:

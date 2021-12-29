@@ -1,1 +1,2 @@
 from .template_transform import TemplateTransform
+from .xorstream_processor import XorStreamProcessor

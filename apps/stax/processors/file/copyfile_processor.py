@@ -1,7 +1,7 @@
-import os
+import shutil
 from stax import StaxProcessor, StaxParameter
 
-class MoveFileProcessor(StaxProcessor):
+class CopyFileProcessor(StaxProcessor):
     INITIALIZED = False
     NAME = 'Move File'
     FOLDER = 'file'
@@ -17,5 +17,5 @@ class MoveFileProcessor(StaxProcessor):
     def process(self, input):
         src_filename = input['input']
         dst_filename = input['params']['destination']
-        os.rename(src_filename, dst_filename)
+        shutil.copy(src_filename, dst_filename)
         return dst_filename

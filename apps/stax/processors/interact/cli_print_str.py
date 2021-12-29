@@ -7,13 +7,11 @@ class CLIPrintStr(StaxProcessor):
 
     PARAMETERS = None
     # input is a byte buffer
-    INPUT_TYPE = 'scalar'
+    INPUT_TYPE = 'string'
     # output is str
-    OUTPUT_TYPE = 'scalar'
+    OUTPUT_TYPE = 'string'
 
     def process(self, input=None):
         message = input['input']
         print(message)
-        self.output = message
-        self.ready = self.done = True
         return message

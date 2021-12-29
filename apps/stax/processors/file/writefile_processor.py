@@ -8,22 +8,14 @@ class WriteFileProcessor(StaxProcessor):
 
     PARAMETERS = None
     # input is a byte buffer
-    INPUT_TYPE = 'raw'
+    INPUT_TYPE = 'stream'
     # output is filename
-    OUTPUT_TYPE = 'scalar'
-
-    def __init__(self):
-        self.tmpfile = tempfile.NamedTemporaryFile()
+    OUTPUT_TYPE = 'string'
 
     def process(self, input):
-        self.output = False
-        self.ready = self.done = False
-        buffer = input['buffer']
-        self.tmpfile.write(buffer)
-
-    def end_record(self):
-        filename = self.tmpfile.name
-        self.tmpfile = tempfile.NamedTemporaryFile()
-        self.ready = self.done = True
-        self.output = filename
-        return filename
+        generator = input['input']
+        tmpfile = tempfile.NamedTemporaryFile(delete=False)
+        for buffer in generator:
+            tmpfile.write(buffer)
+            tmpfile.close()
+        return tmpfile.name

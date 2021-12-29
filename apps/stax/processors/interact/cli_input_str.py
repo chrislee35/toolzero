@@ -9,10 +9,8 @@ class CLIInputStr(StaxProcessor):
     # input is a byte buffer
     INPUT_TYPE = None
     # output is str
-    OUTPUT_TYPE = 'scalar'
+    OUTPUT_TYPE = 'string'
 
     def process(self, data=None):
         val = input('> ')
-        self.output = val
-        self.ready = self.done = True
         return val
