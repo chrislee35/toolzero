@@ -134,4 +134,14 @@ if __name__ == "__main__":
         se.cli_set_parameters()
         se.run_pipeline()
 
-    test2()
+    def test3():
+        se = StaxEngine()
+        se.append_processor('CLI Input Str')
+        se.append_processor('Read File')
+        se.append_processor('Custom Code')
+        se.append_processor('Stream to String')
+        se.append_processor('CLI Print Str')
+        se.cli_set_parameters()
+        se.run_pipeline()
+
+    test3()
