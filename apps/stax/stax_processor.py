@@ -7,16 +7,14 @@ class StaxProcessor:
 
     # list of StaxParameter objects with the parameters to the processor
     PARAMETERS = None
-    # input is one of None, 'list', 'scalar', 'dict', 'raw', or 'filename'
+    # input is one of None, 'list', 'string', 'int', 'dict', 'stream'
     INPUT_TYPE = None
-    # output is one of None, 'list', 'scalar', 'dict', 'raw', or 'filename'
-    # if you need to ouput a list of filenames, you should use 'list', then
-    # use the list to filename looper
+    # output is one of None, 'list', 'string', 'int', 'dict', 'stream'
     OUTPUT_TYPE = None
 
     def __init__(self):
         pass
-        
+
     @classmethod
     def create(cls, **kwargs):
         if not cls.INITIALIZED:
