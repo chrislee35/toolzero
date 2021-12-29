@@ -1,6 +1,6 @@
 from stax import StaxProcessor
 
-class CLIPrintStr(StaxProcessor):
+class CliPrintStr(StaxProcessor):
     INITIALIZED = False
     NAME = 'CLI Print Str'
     FOLDER = 'interact'

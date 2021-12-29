@@ -23,6 +23,9 @@ class StaxEngine:
             mod = __import__(name, fromlist=[''])
             kls = [x for x in dir(mod) if not '_' in x and not x == 'StaxProcessor']
             for kl in kls:
+                if kl[0] != kl[0].upper():
+                    continue
+                #print("Loading mod.%s" % kl)
                 klass = eval("mod.%s" % kl)
                 if issubclass(klass, StaxProcessor):
                     self.PROCESSORS[klass.NAME] = name+'.'+kl
