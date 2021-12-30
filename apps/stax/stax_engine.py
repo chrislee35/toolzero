@@ -6,6 +6,7 @@ class StaxEngine:
     PROCESSORS = {}
 
     def __init__(self):
+        self.variables = {}
         self.pipeline = []
         if not self.INITIALIZED:
             self._discover_processors()
@@ -28,21 +29,22 @@ class StaxEngine:
                 #print("Loading mod.%s" % kl)
                 klass = eval("mod.%s" % kl)
                 if issubclass(klass, StaxProcessor):
-                    self.PROCESSORS[klass.NAME] = name+'.'+kl
+                    self.PROCESSORS[klass.NAME] = klass
 
-    def _load_app(self, app_name):
-        pathname = '.'.join(app_name.split('.')[0:-1])
-        classname = app_name.split('.')[-1]
-        mod = __import__(pathname, fromlist=[''])
-        klass = eval("mod."+classname)
-        if issubclass(klass, StaxProcessor):
-            return klass
-        return None
+    def list_processors_with_input(self, input_type):
+        matching_processors = []
+        for proc_name in self.PROCESSORS.keys():
+            in_types = self.PROCESSORS[proc_name].INPUT_TYPES
+            if input_type is None and in_types is None:
+                matching_processors.append(proc_name)
+            elif in_types is not None and input_type in in_types:
+                matching_processors.append(proc_name)
+        return matching_processors
 
     def append_processor(self, processor_name):
         if not self.PROCESSORS.get(processor_name):
             raise ValueError("Could not find processor with name: %s" % processor_name)
-        kls = self._load_app(self.PROCESSORS[processor_name])
+        kls = self.PROCESSORS[processor_name]
         if kls is None:
             raise ArgumentError("Could not load class for processor: %s -> %s" % (processor_name, self.PROCESSORS[processor_name]))
         instance = kls()
@@ -85,6 +87,9 @@ class StaxEngine:
                 else:
                     return False
         return False
+
+    def set_variable(self, name, value):
+        self.variables[name] = value
 
     def cli_set_parameters(self):
         for entry in self.pipeline:
@@ -177,12 +182,25 @@ if __name__ == "__main__":
         se.cli_set_parameters()
         se.run_pipeline()
 
-    test1()
-    test2()
-    test3()
-    try:
-        test4()
-    except Exception as e:
-        print(e)
+    def test7():
+        se = StaxEngine()
+        se.append_processor('Input Number')
+        se.append_processor('Store Variable')
+        se.append_processor('Input String')
+        se.append_processor('Store Variable')
+        se.append_processor('Load Variables')
+        se.append_processor('Template Transform')
+        se.append_processor('CLI Print')
+        se.cli_set_parameters()
+        se.run_pipeline()
+
+    #test1()
+    #test2()
+    #test3()
+    #try:
+    #    test4()
+    #except Exception as e:
+    #    print(e)
     test5()
-    test6()
+    #test6()
+    #test7()

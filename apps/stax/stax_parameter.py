@@ -75,3 +75,14 @@ class StaxParameter:
     def color_validator(self, c):
         color_regex = re.compile(r'#[a-f0-9]{6}')
         return color_regex.match(c) is not None
+
+class ComboboxParameter(StaxParameter):
+    def __init__(self, name, options, default=None):
+        self.name = name
+        self.type = 'combo'
+        self.default = default or options[0]
+        self.options = options
+        self.validate = self.combo_validator
+
+    def combo_validator(self, c):
+        return c in self.options

@@ -6,17 +6,21 @@ class TemplateTransform(StaxProcessor):
     FOLDER = 'data'
 
     PARAMETERS = [
-        StaxParameter('template', 'string', '{}')
+        StaxParameter('template', 'string', '{x} is different than {y}')
     ]
     # input is a byte buffer
-    INPUT_TYPES = ['string', 'numeric']
+    INPUT_TYPES = ['string', 'numeric', 'dict', 'list']
     # output is str
     OUTPUT_TYPE = 'string'
 
     def process(self, input=None):
         template = input['params']['template']
-        if template:
-            val = template.format(input['input'])
-        else:
+        if not template:
             val = input['input']
+        elif type(input['input']) == dict:
+            val = template.format(**input['input'])
+        elif type(input['input']) == list:
+            val = template.format(*input['input'])
+        else:
+            val = input['input'].format(input['input'])
         return val

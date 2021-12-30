@@ -22,11 +22,8 @@ class HexDumpTransform(StaxProcessor):
                 offset += 16
                 yield line
 
-        print(offset)
-        print(len(buffer))
-
         if len(buffer) > 0:
-            line = "x%04x: %47s  %s" % (offset, buffer[0:16].hex(sep=' '), self.buf_2_ascii(buffer))
+            line = "%04x: %s  %s" % (offset, buffer[0:16].hex(sep=' ').ljust(47), self.buf_2_ascii(buffer))
             yield line
 
     def buf_2_ascii(self, buf):

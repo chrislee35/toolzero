@@ -16,4 +16,6 @@ class ReadFileProcessor(StaxProcessor):
         filename = input['input']
         with open(filename, 'rb') as fh:
             buff = fh.read(1024)
-            yield buff
+            while buff:
+                yield buff
+                buff = fh.read(1024)
