@@ -10,7 +10,7 @@ class MoveFileProcessor(StaxProcessor):
         StaxParameter('destination', 'string')
     ]
     # input is a byte buffer
-    INPUT_TYPE = 'string'
+    INPUT_TYPES = ['string']
     # output is filename
     OUTPUT_TYPE = 'string'
 

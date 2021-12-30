@@ -6,8 +6,8 @@ class ListToStringAdapter(StaxProcessor):
     FOLDER = 'data'
 
     PARAMETERS = None
-    INPUT_TYPE = 'list'
-    OUTPUT_TYPE = 'string'
+    INPUT_TYPES = ['list','generator']
+    OUTPUT_TYPE = 'string' # this is a special case
 
     def process(self, input):
         mylist = input['input']

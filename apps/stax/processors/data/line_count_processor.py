@@ -6,7 +6,7 @@ class LineCountProcessor(StaxProcessor):
     FOLDER = 'data'
 
     PARAMETERS = None
-    INPUT_TYPE = 'string'
+    INPUT_TYPES = ['string']
     OUTPUT_TYPE = 'string'
 
     def __init__(self):

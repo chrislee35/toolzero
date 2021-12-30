@@ -8,7 +8,7 @@ class StringSplitTransform(StaxProcessor):
     PARAMETERS = [
         StaxParameter('delimeter', 'string', '\n')
     ]
-    INPUT_TYPE = 'string'
+    INPUT_TYPES = ['string']
     OUTPUT_TYPE = 'list'
 
     def process(self, input):

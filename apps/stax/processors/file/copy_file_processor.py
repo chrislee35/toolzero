@@ -3,14 +3,14 @@ from stax import StaxProcessor, StaxParameter
 
 class CopyFileProcessor(StaxProcessor):
     INITIALIZED = False
-    NAME = 'Move File'
+    NAME = 'Copy File'
     FOLDER = 'file'
 
     PARAMETERS = [
-        StaxParameter('destination', 'string')
+        StaxParameter('destination', 'string', 'test2')
     ]
     # input is a byte buffer
-    INPUT_TYPE = 'string'
+    INPUT_TYPES = ['string']
     # output is filename
     OUTPUT_TYPE = 'string'
 

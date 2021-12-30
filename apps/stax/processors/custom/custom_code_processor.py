@@ -9,8 +9,8 @@ class CustomCodeProcessor(StaxProcessor):
     PARAMETERS = [
         StaxParameter('code', 'textbox', 'x = b\'hello \'+item\nx + x')
     ]
-    INPUT_TYPE = 'stream'
-    OUTPUT_TYPE = 'stream'
+    INPUT_TYPES = ['bytes_generator']
+    OUTPUT_TYPE = 'bytes_generator'
 
     def process(self, input):
         code = input['params']['code']

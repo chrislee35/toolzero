@@ -6,7 +6,7 @@ class StreamToStringTransform(StaxProcessor):
     FOLDER = 'data'
 
     PARAMETERS = None
-    INPUT_TYPE = 'stream'
+    INPUT_TYPES = ['bytes_generator']
     OUTPUT_TYPE = 'string'
 
     def process(self, input):

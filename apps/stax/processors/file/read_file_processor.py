@@ -8,9 +8,9 @@ class ReadFileProcessor(StaxProcessor):
 
     PARAMETERS = None
     # input is a byte buffer
-    INPUT_TYPE = 'string'
+    INPUT_TYPES = ['string']
     # output is filename
-    OUTPUT_TYPE = 'stream'
+    OUTPUT_TYPE = 'bytes_generator'
 
     def process(self, input):
         filename = input['input']

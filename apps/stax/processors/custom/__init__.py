@@ -8,5 +8,4 @@ imports = {}
 for module in modules:
     model_name = module.title().replace("_", "")
     imports[model_name] = getattr(__import__(stripped_path + "." + module, fromlist=[model_name]), model_name)
-print(imports)
 globals().update(imports)

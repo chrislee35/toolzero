@@ -4,12 +4,14 @@ class StaxProcessor:
     # which folder of processors should this processor appear
     # None means that it doesn't appear anywhere
     FOLDER = None # should be str
+    # description of the tool
+    DESCRIPTION = "Base class for all Stax Processors"
 
     # list of StaxParameter objects with the parameters to the processor
     PARAMETERS = None
-    # input is one of None, 'list', 'string', 'int', 'dict', 'stream'
-    INPUT_TYPE = None
-    # output is one of None, 'list', 'string', 'int', 'dict', 'stream'
+    # input is a list of valid inputs. one of None, 'list', 'string', 'numeric', 'dict', 'generator', 'bytes_generator'
+    INPUT_TYPES = None
+    # output is one of None, 'list', 'string', 'numeric', 'dict', 'generator', 'bytes_generator'
     OUTPUT_TYPE = None
 
     def __init__(self):

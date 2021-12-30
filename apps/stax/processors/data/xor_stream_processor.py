@@ -3,16 +3,16 @@ from stax import StaxProcessor, StaxParameter
 
 class XorStreamProcessor(StaxProcessor):
     INITIALIZED = False
-    NAME = 'XOR Stream'
+    NAME = 'XOR'
     FOLDER = 'data'
 
     PARAMETERS = [
         StaxParameter('xor', 'string', '0xa5')
     ]
     # input is a byte buffer
-    INPUT_TYPE = 'stream'
+    INPUT_TYPES = ['bytes_generator']
     # output is filename
-    OUTPUT_TYPE = 'stream'
+    OUTPUT_TYPE = 'bytes_generator'
 
     def process(self, input):
         generator = input['input']

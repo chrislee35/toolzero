@@ -8,7 +8,7 @@ class WriteFileProcessor(StaxProcessor):
 
     PARAMETERS = None
     # input is a byte buffer
-    INPUT_TYPE = 'stream'
+    INPUT_TYPES = ['bytes_generator']
     # output is filename
     OUTPUT_TYPE = 'string'
 

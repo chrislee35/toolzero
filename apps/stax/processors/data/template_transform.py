@@ -6,12 +6,12 @@ class TemplateTransform(StaxProcessor):
     FOLDER = 'data'
 
     PARAMETERS = [
-        StaxParameter('template', 'string')
+        StaxParameter('template', 'string', '{}')
     ]
     # input is a byte buffer
-    INPUT_TYPE = 'scalar'
+    INPUT_TYPES = ['string', 'numeric']
     # output is str
-    OUTPUT_TYPE = 'scalar'
+    OUTPUT_TYPE = 'string'
 
     def process(self, input=None):
         template = input['params']['template']
@@ -19,7 +19,4 @@ class TemplateTransform(StaxProcessor):
             val = template.format(input['input'])
         else:
             val = input['input']
-
-        self.output = val
-        self.ready = self.done = True
         return val
