@@ -1,4 +1,4 @@
-from stax import StaxProcessor, StaxParameter
+from apps.stax import StaxProcessor, StaxParameter
 
 class StringSplitTransform(StaxProcessor):
     INITIALIZED = False

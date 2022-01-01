@@ -1,4 +1,4 @@
-from stax import StaxProcessor, StaxParameter
+from apps.stax import StaxProcessor, StaxParameter
 import inspect
 
 class StoreVariable(StaxProcessor):
@@ -10,7 +10,7 @@ class StoreVariable(StaxProcessor):
         StaxParameter('name', 'string', 'x')
     ]
     INPUT_TYPES = ['list', 'string', 'numeric', 'dict', 'generator', 'bytes_generator']
-    OUTPUT_TYPE = None
+    OUTPUT_TYPE = 'None'
 
     def process(self, input):
         value = input['input']

@@ -1,4 +1,4 @@
-from stax import StaxProcessor, StaxParameter
+from apps.stax import StaxProcessor, StaxParameter
 import inspect
 
 class LoadVariables(StaxProcessor):
@@ -6,8 +6,8 @@ class LoadVariables(StaxProcessor):
     NAME = 'Load Variables'
     FOLDER = 'data'
 
-    PARAMETERS = None
-    INPUT_TYPES = None
+    PARAMETERS = []
+    INPUT_TYPES = ['None']
     OUTPUT_TYPE = 'dict'
 
     def process(self, input):

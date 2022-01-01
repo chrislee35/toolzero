@@ -1,4 +1,4 @@
-from stax import StaxProcessor, StaxParameter
+from apps.stax import StaxProcessor, StaxParameter
 
 class TemplateTransform(StaxProcessor):
     INITIALIZED = False
@@ -15,6 +15,7 @@ class TemplateTransform(StaxProcessor):
 
     def process(self, input=None):
         template = input['params']['template']
+        print(input['input'])
         if not template:
             val = input['input']
         elif type(input['input']) == dict:

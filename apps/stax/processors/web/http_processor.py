@@ -1,5 +1,5 @@
 import requests
-from stax import StaxProcessor
+from apps.stax import StaxProcessor
 
 class HttpProcessor(StaxProcessor):
     INITIALIZED = False
@@ -9,9 +9,9 @@ class HttpProcessor(StaxProcessor):
     FOLDER = 'web' # should be str
 
     # list of StaxParameter objects with the parameters to the processor
-    PARAMETERS = None
+    PARAMETERS = []
     # input is a single URL
-    INPUT_TYPE = 'scalar'
+    INPUT_TYPES = ['string']
     # output is the byte buffer
     OUTPUT_TYPE = 'stream'
 

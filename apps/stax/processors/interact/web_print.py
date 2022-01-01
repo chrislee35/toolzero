@@ -1,12 +1,14 @@
-from apps.stax import StaxProcessor
+from apps.stax import StaxProcessor, StaxParameter
 import json, types
 
-class CliPrint(StaxProcessor):
+class WebPrint(StaxProcessor):
     INITIALIZED = False
-    NAME = 'CLI Print'
+    NAME = 'Web Print'
     FOLDER = 'interact'
 
-    PARAMETERS = []
+    PARAMETERS = [
+        StaxParameter('output', 'textarea')
+    ]
     INPUT_TYPES = ['string', 'numeric', 'dict', 'list', 'generator']
     OUTPUT_TYPE = 'string'
 
@@ -20,7 +22,6 @@ class CliPrint(StaxProcessor):
             return process_list(self, message);
         else:
             output = str(message)
-        print(output)
         return output
 
     def process_list(self, input=None):
@@ -28,12 +29,9 @@ class CliPrint(StaxProcessor):
         for message in input:
             if type(message) == str:
                 output += message + '\n'
-                print(message)
             elif type(message) == dict:
                 output += json.dumps(message, indent=2)
-                print(json.dumps(message, indent=2))
             else:
                 output += str(message) + '\n'
-                print(str(message))
         output = output.strip('\n')
         return output

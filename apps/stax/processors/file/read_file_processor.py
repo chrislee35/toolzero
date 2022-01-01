@@ -1,15 +1,13 @@
 import tempfile
-from stax import StaxProcessor
+from apps.stax import StaxProcessor
 
 class ReadFileProcessor(StaxProcessor):
     INITIALIZED = False
     NAME = 'Read File'
     FOLDER = 'file'
 
-    PARAMETERS = None
-    # input is a byte buffer
+    PARAMETERS = []
     INPUT_TYPES = ['string']
-    # output is filename
     OUTPUT_TYPE = 'bytes_generator'
 
     def process(self, input):

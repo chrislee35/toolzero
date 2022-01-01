@@ -1,4 +1,4 @@
-from stax import StaxProcessor
+from .stax_processor import StaxProcessor
 import types
 
 class StaxEngine:
@@ -17,7 +17,7 @@ class StaxEngine:
 
     def _discover_processors(self):
         import glob, os
-        for p in glob.glob('stax/processors/*'):
+        for p in glob.glob('apps/stax/processors/*'):
             if not os.path.isdir(p):
                 continue
             name = p.replace('/', '.')
@@ -55,7 +55,7 @@ class StaxEngine:
             'params': {}
         }
         previous_processor_name = "__start__"
-        previous_output_type = None
+        previous_output_type = 'None'
         if len(self.pipeline) > 0:
             previous_output_type = self.pipeline[-1]['proc'].OUTPUT_TYPE
             previous_processor_name = self.pipeline[-1]['name']
@@ -75,6 +75,7 @@ class StaxEngine:
             raise ValueError("Processor %s requires input types %s, but the previous processor, %s, outputs %s" %
                 (processor_name, valid_input_types, previous_processor_name, previous_output_type))
         self.pipeline.append( entry )
+        return entry
 
     def set_parameter(self, proc_index, parameter, value):
         entry = self.pipeline(proc_index)
@@ -121,86 +122,18 @@ class StaxEngine:
             # if generator and output type is scalar, then we are unrolling a loop
             if type(last_output) == types.GeneratorType and entry['proc'].OUTPUT_TYPE not in ['generator', 'bytes_generator']:
                 for item in last_output:
-                    self.run_pipeline(start+i+1, item)
+                    lo = self.run_pipeline(start+i+1, item)
+                last_output = lo
                 break # don't run the rest of the pipeline in this call of the function
+        return last_output
 
-
-if __name__ == "__main__":
-    def test1():
-        se = StaxEngine()
-        se.append_processor('Input String')
-        se.append_processor('Read File')
-        se.append_processor('XOR')
-        se.append_processor('Write File')
-        se.append_processor('Copy File')
-        se.append_processor('CLI Print')
-
-        se.cli_set_parameters()
-        se.run_pipeline()
-
-    def test2():
-        se = StaxEngine()
-        se.append_processor('Input String')
-        se.append_processor('Read File')
-        se.append_processor('Stream to String')
-        se.append_processor('String Split')
-        se.append_processor('List to String')
-        se.append_processor('Line Count')
-        se.append_processor('CLI Print')
-
-        se.cli_set_parameters()
-        se.run_pipeline()
-
-    def test3():
-        se = StaxEngine()
-        se.append_processor('Input String')
-        se.append_processor('Read File')
-        se.append_processor('Custom Code')
-        se.append_processor('Stream to String')
-        se.append_processor('CLI Print')
-        se.cli_set_parameters()
-        se.run_pipeline()
-
-    def test4():
-        se = StaxEngine()
-        se.append_processor('Read File')
-
-    def test5():
-        se = StaxEngine()
-        se.append_processor('Input String')
-        se.append_processor('Read File')
-        se.append_processor('Hex Dump')
-        se.append_processor('CLI Print List')
-        se.cli_set_parameters()
-        se.run_pipeline()
-
-    def test6():
-        se = StaxEngine()
-        se.append_processor('Input Number')
-        se.append_processor('Math Formula')
-        se.append_processor('CLI Print')
-        se.cli_set_parameters()
-        se.run_pipeline()
-
-    def test7():
-        se = StaxEngine()
-        se.append_processor('Input Number')
-        se.append_processor('Store Variable')
-        se.append_processor('Input String')
-        se.append_processor('Store Variable')
-        se.append_processor('Load Variables')
-        se.append_processor('Template Transform')
-        se.append_processor('CLI Print')
-        se.cli_set_parameters()
-        se.run_pipeline()
-
-    #test1()
-    #test2()
-    #test3()
-    #try:
-    #    test4()
-    #except Exception as e:
-    #    print(e)
-    test5()
-    #test6()
-    #test7()
+    def submit_pipeline(self, pipeline, start=0):
+        self.pipeline = []
+        self.variables = {}
+        for block in pipeline:
+            entry = self.append_processor(block['processor'])
+            if len(entry['stax_params']) > 0:
+                for sp in entry['stax_params']:
+                    entry['params'][sp.name] = block['parameters'][sp.name]
+        answer = self.run_pipeline(start)
+        yield answer

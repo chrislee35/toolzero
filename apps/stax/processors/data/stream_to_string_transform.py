@@ -1,11 +1,11 @@
-from stax import StaxProcessor, StaxParameter
+from apps.stax import StaxProcessor, StaxParameter
 
 class StreamToStringTransform(StaxProcessor):
     INITIALIZED = False
     NAME = 'Stream to String'
     FOLDER = 'data'
 
-    PARAMETERS = None
+    PARAMETERS = []
     INPUT_TYPES = ['bytes_generator']
     OUTPUT_TYPE = 'string'
 

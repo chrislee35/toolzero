@@ -1,5 +1,5 @@
 import socket
-from stax import StaxProcessor
+from apps.stax import StaxProcessor
 
 class DnsProcessor(StaxProcessor):
     INITIALIZED = False
@@ -9,14 +9,14 @@ class DnsProcessor(StaxProcessor):
     FOLDER = 'web' # should be str
 
     # list of StaxParameter objects with the parameters to the processor
-    PARAMETERS = None
+    PARAMETERS = []
     # input is a single hostname
-    INPUT_TYPE = 'scalar'
+    INPUT_TYPES = ['string']
     # output is the ip
-    OUTPUT_TYPE = 'scalar'
+    OUTPUT_TYPE = 'string'
 
     def process(self, input):
-        hostname = input['scalar']
+        hostname = input['input']
         if hostname:
             host = socket.gethostbyname(hostname)
             return host

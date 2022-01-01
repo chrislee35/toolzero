@@ -1,4 +1,4 @@
-from stax import StaxProcessor, StaxParameter
+from apps.stax import StaxProcessor, StaxParameter
 
 class InputStr(StaxProcessor):
     INITIALIZED = False
@@ -6,11 +6,11 @@ class InputStr(StaxProcessor):
     FOLDER = 'interact'
 
     PARAMETERS = [
-        StaxParameter('String', 'string', 'test')
+        StaxParameter('string', 'string', 'test')
     ]
-    INPUT_TYPE = None
+    INPUT_TYPES = ['None']
     OUTPUT_TYPE = 'string'
 
     def process(self, input=None):
-        val = input['params']['String']
+        val = input['params']['string']
         return val

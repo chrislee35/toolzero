@@ -1,12 +1,12 @@
 import tempfile
-from stax import StaxProcessor
+from apps.stax import StaxProcessor
 
 class WriteFileProcessor(StaxProcessor):
     INITIALIZED = False
     NAME = 'Write File'
     FOLDER = 'file'
 
-    PARAMETERS = None
+    PARAMETERS = []
     # input is a byte buffer
     INPUT_TYPES = ['bytes_generator']
     # output is filename

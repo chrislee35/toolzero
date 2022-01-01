@@ -1,5 +1,5 @@
 import os
-from stax import StaxProcessor, StaxParameter
+from apps.stax import StaxProcessor, StaxParameter
 
 class MoveFileProcessor(StaxProcessor):
     INITIALIZED = False
@@ -9,9 +9,7 @@ class MoveFileProcessor(StaxProcessor):
     PARAMETERS = [
         StaxParameter('destination', 'string')
     ]
-    # input is a byte buffer
     INPUT_TYPES = ['string']
-    # output is filename
     OUTPUT_TYPE = 'string'
 
     def process(self, input):

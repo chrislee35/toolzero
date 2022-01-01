@@ -1,11 +1,11 @@
-from stax import StaxProcessor, StaxParameter
+from apps.stax import StaxProcessor, StaxParameter
 
 class ListToStringAdapter(StaxProcessor):
     INITIALIZED = False
     NAME = 'List to String'
     FOLDER = 'data'
 
-    PARAMETERS = None
+    PARAMETERS = []
     INPUT_TYPES = ['list','generator']
     OUTPUT_TYPE = 'string' # this is a special case
 

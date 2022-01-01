@@ -8,6 +8,8 @@ $.getJSON( "listapps", function(data) {
       a.onclick = function() { open_app(app['path']) };
     } else if (app['type'] == 'js') {
       a.onclick = function() { open_jsapp(app['path']) };
+    } else if (app['type'] == 'jspy') {
+      a.onclick = function() { open_jspyapp(app['path']) };
     }
     a.innerText = app['name'];
     a.title = app['desc'];
@@ -28,6 +30,22 @@ function open_app(app_name) {
 
 function open_jsapp(app_name) {
   $.getJSON( "jsapps/"+app_name, function(data) {
+    var app_id = data['app_id'];
+    var page = data['page'];
+    var name = data['name'];
+    var li = document.createElement('li');
+    var h = document.createElement('a');
+    h.setAttribute('href', '#app_'+app_id);
+    h.innerHTML = name;
+    li.append(h);
+    $("#apps_list").append(li);
+    $("#app_tabs").append(page);
+    $("#app_tabs").tabs("refresh");
+  });
+}
+
+function open_jspyapp(app_name) {
+  $.getJSON( "jspyapps/"+app_name, function(data) {
     var app_id = data['app_id'];
     var page = data['page'];
     var name = data['name'];
@@ -227,6 +245,21 @@ function call_function(app_id, form_data, callback_name) {
   });
 }
 
+function call_function_callback(app_id, form_data, callback_name, callback) {
+  if(document.getElementById(app_id+'_progress')) {
+    document.getElementById(app_id+'_progress').value = 0;
+  }
+  $.ajax({
+    type: "POST",
+    url: "call/"+app_id+"/"+callback_name,
+    data: form_data,
+    success: function(data) {
+      connect_websocket_callback(data, callback);
+    },
+    dataType: 'json'
+  });
+}
+
 function proxy(callback, method, url, params, body, headers) {
   proxy_request = JSON.stringify(
     {
@@ -269,14 +302,16 @@ function connect_websocket(data, app_id) {
 }
 
 function connect_websocket_callback(data, callback) {
-  console.log(data);
+  //console.log(data);
   var ws = new WebSocket(data['websocket'], 'results');
   ws.onopen = function(event) {
     ws.send(data['callback_id']);
   };
   ws.onmessage = function(event) {
+    //console.log(event.data);
     data = JSON.parse(event.data);
-    console.log(data);
+    //console.log("connect_websocket_callback recieved data:");
+    //console.log(data);
     if(data['status'] == 'success') {
       callback(data['results']);
     }
@@ -287,6 +322,13 @@ function connect_websocket_callback(data, callback) {
   ws.onclose = function(event) {
     console.log(event.reason);
   };
+}
+
+function uuid1() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace( /[xy]/g , function(c) {
+    var rnd = Math.random()*16 |0, v = c === 'x' ? rnd : (rnd&0x3|0x8) ;
+    return v.toString(16);
+  });
 }
 
 $("#app_tabs").tabs()

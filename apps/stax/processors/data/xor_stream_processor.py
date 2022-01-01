@@ -1,5 +1,5 @@
 import tempfile
-from stax import StaxProcessor, StaxParameter
+from apps.stax import StaxProcessor, StaxParameter
 
 class XorStreamProcessor(StaxProcessor):
     INITIALIZED = False

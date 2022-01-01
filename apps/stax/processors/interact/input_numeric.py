@@ -1,4 +1,4 @@
-from stax import StaxProcessor, StaxParameter
+from apps.stax import StaxProcessor, StaxParameter
 
 class InputNumeric(StaxProcessor):
     INITIALIZED = False
@@ -6,11 +6,11 @@ class InputNumeric(StaxProcessor):
     FOLDER = 'interact'
 
     PARAMETERS = [
-        StaxParameter('Number', 'float', '4.3')
+        StaxParameter('number', 'float', '4.3')
     ]
-    INPUT_TYPE = None
+    INPUT_TYPES = ['None']
     OUTPUT_TYPE = 'numeric'
 
     def process(self, input=None):
-        val = input['params']['Number']
+        val = input['params']['number']
         return float(val)

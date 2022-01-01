@@ -1,11 +1,11 @@
-from stax import StaxProcessor
+from apps.stax import StaxProcessor
 
 class LineCountProcessor(StaxProcessor):
     INITIALIZED = False
     NAME = 'Line Count'
     FOLDER = 'data'
 
-    PARAMETERS = None
+    PARAMETERS = []
     INPUT_TYPES = ['string']
     OUTPUT_TYPE = 'string'
 

@@ -1,11 +1,11 @@
-from stax import StaxProcessor
+from apps.stax import StaxProcessor
 
 class HexDumpTransform(StaxProcessor):
     INITIALIZED = False
     NAME = 'Hex Dump'
     FOLDER = 'data'
 
-    PARAMETERS = None
+    PARAMETERS = []
     # input is a byte buffer
     INPUT_TYPES = ['bytes_generator']
     # output is str

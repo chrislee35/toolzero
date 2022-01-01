@@ -1,66 +1,27 @@
 from homebase import BaseTool
 from .stax_engine import StaxEngine
-import time
+import time, json
 
 class StaxApp(BaseTool):
     def __init__(self):
         self.name = "Stax"
         self.folder = "Test"
         self.engine = StaxEngine()
-        self.fields = [
-            {
-                'label': 'Name',
-                'key': 'name',
-                'type': 'text',
-                'default': '',
-                'onchange': 'check_name'
-            },
-            {
-                'label': 'Age',
-                'key': 'age',
-                'type': 'list',
-                'values': ['1-10', '11-20', '21-30', '31-40'],
-                'default': '21-30'
-            },
-            {
-                'label': 'Count',
-                'key': 'count',
-                'type': 'text',
-                'default': '10'
-            },
-            {
-                'type': 'button',
-                'text': 'Submit',
-                'onclick': 'remember_name_and_age'
-            },
-            {
-                'type': 'button',
-                'text': 'Count',
-                'onclick': 'count_up'
+
+    def list_processors(self, **kwargs):
+        processors = {}
+        for proc in self.engine.PROCESSORS:
+            p = self.engine.PROCESSORS[proc]
+            params = p.PARAMETERS or []
+            processors[proc] = {
+                'name': proc,
+                'folder': p.FOLDER,
+                'inputs': p.INPUT_TYPES,
+                'output': p.OUTPUT_TYPE,
+                'parameters': [ { 'name': x.name, 'type': x.type, 'default': x.default } for x in params ]
             }
-        ]
+        yield self.success(processors)
 
-        self.result_type = {
-            'type': 'textarea',
-            'default': 'Results will show here'
-        }
-
-    def check_name(self, name, **kwargs):
-        if len(name) < 5:
-            return self.error('Name too short.')
-        elif self.data.get(name):
-            return self.error('Name already taken.')
-        else:
-            return self.success('Nice name!')
-
-    def remember_name_and_age(self, name, age, **kwargs):
-        self.data[name] = age
-        yield self.success('I will remember you.', progress=50)
-        time.sleep(5)
-        yield self.success('finished', progress=75)
-
-    def count_up(self, count=10, **kwargs):
-        count = int(count)
-        for i in range(count):
-            yield(self.success(str(i), progress=(i+1)*100/count))
-            time.sleep(1)
+    def run_pipeline(self, **kwargs):
+        for message in self.engine.submit_pipeline(kwargs['pipeline']):
+            yield self.success(message)

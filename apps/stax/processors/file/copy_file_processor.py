@@ -1,5 +1,5 @@
 import shutil
-from stax import StaxProcessor, StaxParameter
+from apps.stax import StaxProcessor, StaxParameter
 
 class CopyFileProcessor(StaxProcessor):
     INITIALIZED = False
@@ -9,9 +9,7 @@ class CopyFileProcessor(StaxProcessor):
     PARAMETERS = [
         StaxParameter('destination', 'string', 'test2')
     ]
-    # input is a byte buffer
     INPUT_TYPES = ['string']
-    # output is filename
     OUTPUT_TYPE = 'string'
 
     def process(self, input):

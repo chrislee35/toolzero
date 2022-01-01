@@ -88,6 +88,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         p = urlparse(self.path)
         path = p.path.replace('..','.')
 
+        global active_apps
         if path == '/' or path == '/index.html':
             query = p.query
             parsed_query = parse_qs(query)
@@ -111,7 +112,6 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             if not klass:
                 self._return_json(404, {'error': 'App not found'})
                 return
-            global active_apps
             app = klass()
             active_apps[app_id] = app
             # return the interface description to be rendered with the app_instance_id
@@ -127,6 +127,27 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
                 return
             # read the page and replace $app_id
             page = open(page_filename, 'r').read().replace('$app_id', app_id)
+            # return the page in the data structure
+            self._return_json(200, { 'app_id': app_id, 'page': page, 'name': app_name })
+        elif path.startswith('/jspyapps/'):
+            # generate uuid for the app instance
+            app_id = uuid().hex
+            # load the page for the app
+            app_name = path.split('/')[-1]
+            page_filename = 'apps/'+app_name+'/index.html'
+            if not os.path.exists(page_filename):
+                self._return_json(404, {'error': 'App not found'})
+                return
+            # read the page and replace $app_id
+            page = open(page_filename, 'r').read().replace('$app_id', app_id)
+            # now launch the python app
+            klass = self._load_app(app_name)
+            if not klass:
+                self._return_json(404, {'error': 'App not found'})
+                return
+            app = klass()
+            active_apps[app_id] = app
+
             # return the page in the data structure
             self._return_json(200, { 'app_id': app_id, 'page': page, 'name': app_name })
         else:
@@ -199,9 +220,9 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
                 with open(regfile, 'r') as fh:
                     reg = json.load(fh)
                     if not reg.get('type'):
-                        print("Cannot autodetect the application type, must be one of js or py.")
+                        print("Cannot autodetect the application type, must be one of js, py, or jspy.")
                         continue
-                    if not reg['type'] in ['js', 'py']:
+                    if not reg['type'] in ['js', 'py', 'jspy']:
                         print("Unknown application type: %s" % reg['type'])
                         continue
                     reg['path'] = os.path.basename(p)
@@ -232,13 +253,13 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             app = active_apps[app_id]
             # check if the app responds to the function
             if not hasattr(app, function):
-                self._return_json(404, { 'status': 'error', 'error': 'function does not exist' } )
-                return
+                return self._return_json(404, { 'status': 'error', 'error': 'function does not exist' } )
 
             # serialize the post data as parameters
             content_len = int(self.headers.get('content-length', 0))
             post_body = self.rfile.read(content_len)
             callback_id = uuid().hex
+            print(post_body)
             data = json.loads(post_body)
 
             # allocate a WebSocket and attach a thread with the function
