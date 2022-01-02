@@ -129,7 +129,8 @@ class StaxEngine:
 
     def submit_pipeline(self, pipeline, start=0):
         self.pipeline = []
-        self.variables = {}
+        if start == 0:
+            self.variables = {}
         for block in pipeline:
             entry = self.append_processor(block['processor'])
             if len(entry['stax_params']) > 0:

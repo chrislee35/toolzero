@@ -17,6 +17,17 @@
     grid-row: 1;
     overflow-y: auto;
   }
+  #remove_last_div {
+    position: absolute;
+    bottom: 10px;
+    right: 28px;
+  }
+  #remove_last_div::before {
+    font-family: arial;
+    font-size: 28px;
+    content: '\2715';
+    color: red;
+  }
   .processor_block {
     width: 220px;
     margin: 5px;
@@ -24,6 +35,15 @@
     border-radius: 15px;
     color: darkblue;
     font-weight: bold;
+  }
+  .playable::before {
+    font-family: 'Webdings';
+    font-size: 28px;
+    content: '\25B6';
+    top: 0px;
+    left: 12px;
+    padding-right: 4px;
+    color: green;
   }
   .processor_instance {
     margin: 10px;
@@ -79,11 +99,12 @@
   <div id='processor_list_$app_id'>
   </div>
   <div id='pipeline_$app_id'>
+    <div id='remove_last_div' onclick='stax_$app_id.remove_block_from_pipeline()'></div>
   </div>
-  <input type='button' value='data' onclick='stax_$app_id.submit_pipeline();'/>
 </div>
 
 <script type='text/javascript'>
+  var debug;
 
   class Stax_$app_id {
     constructor() {
@@ -100,7 +121,12 @@
       button.click(this.add_block_to_pipeline);
       $('#processor_list_$app_id').append(button);
     }
-    render_processor(name, folder_class, output_type, params) {
+    render_processor(proc) {
+      var name = proc['name'];
+      var folder_class = 'folder_'+proc['folder'];
+      var output_type = proc['output'];
+      var params = proc['parameters'];
+      // render parameters
       var param_form = "";
       if(params.length > 0) {
         param_form = "<form>";
@@ -122,10 +148,20 @@
           }
         }
       }
+      // create the next pipeline processor id
+      var proc_id = this.pipeline.length;
 
-      $('#pipeline_$app_id').append(
-        "<div class='processor_instance "+folder_class+"'>"+name+param_form+"</div>"
-      );
+      // append the processor to the pipeline visualization
+      if(proc['inputs'].indexOf('None') > -1) {
+        $('#pipeline_$app_id').append(
+          "<div data-proc-id='"+ proc_id +"' class='processor_instance "+folder_class+" playable' onclick='stax_$app_id.submit_pipeline(this.dataset.procId);'>"+name+param_form+"</div>"
+        );
+      } else {
+        $('#pipeline_$app_id').append(
+          "<div data-proc-id='"+ proc_id +"' class='processor_instance "+folder_class+"''>"+name+param_form+"</div>"
+        );
+      }
+
       $('#pipeline_$app_id').append(
         "<div class='processor_output_type "+output_type+"'>"+output_type+"</div>"
       );
@@ -133,11 +169,11 @@
       this.activate_valid_blocks();
     }
     activate_valid_blocks() {
-      var myself = this;
+      var self = this;
       $('#processor_list_$app_id .processor_block').each(function(index, ele) {
         var name = ele.innerText;
-        var proc = myself.get_proc(name);
-        if(proc['inputs'].indexOf(myself.last_output) == -1) {
+        var proc = self.get_proc(name);
+        if(proc['inputs'].indexOf(self.last_output) == -1) {
           ele.classList.add('disabled');
         } else {
           ele.classList.remove('disabled');
@@ -145,35 +181,57 @@
       });
     }
     add_block_to_pipeline() {
-      var myself = stax_$app_id;
+      var self = stax_$app_id;
       var button = $( this )[0];
       var name = button.innerText;
-      var folder = button.classList[1];
-      var proc = Object.assign({}, myself.get_proc(name));
-      var output_type = proc['output'];
-      var input_types = proc['inputs'];
+      // copy the Proc Block to a Proc Instance
+      var proc = Object.assign({}, self.get_proc(name));
+      // copy the Parameters
       var params = [];
       for(var i in proc['parameters']) {
         params.push(Object.assign({}, proc['parameters'][i]));
       }
       proc['parameters'] = params;
-      if(input_types.indexOf(myself.last_output) == -1) {
-        alert("Last output type was "+myself.last_output+". "+name+" takes in one of "+input_types.join(", ") );
+      // check if the last output is compatible.
+      if(proc['inputs'].indexOf(self.last_output) == -1) {
+        alert("Last output type was "+self.last_output+". "+name+" takes in one of "+input_types.join(", ") );
       } else {
-        myself.render_processor(name, folder, output_type, params);
-        myself.pipeline.push(proc);
+        self.render_processor(proc);
+        self.pipeline.push(proc);
       }
+    }
+    remove_block_from_pipeline() {
+      var self = stax_$app_id;
+
+      if ( self.pipeline.length == 0 ) { return; }
+
+      var proc_id = self.pipeline.length - 1;
+      self.pipeline.pop();
+      var ele = $(".processor_instance[data-proc-id="+proc_id+"]");
+      // need to update the last output type
+      console.log(ele.prev());
+      self.last_output = ele.prev().text();
+      if(self.last_output == undefined) {
+        self.last_output = 'None';
+      }
+      console.log(self.last_output);
+      ele.next().remove();
+      ele.remove();
+      self.activate_valid_blocks();
     }
     render_processor_blocks(data) {
-      var myself = stax_$app_id;
-      myself.processors = data;
-      for(var i in myself.processors) {
-        var proc = myself.processors[i];
-        myself.render_block(proc);
+      var self = stax_$app_id;
+      self.processors = data;
+      for(var i in self.processors) {
+        var proc = self.processors[i];
+        self.render_block(proc);
       }
-      myself.activate_valid_blocks();
+      self.activate_valid_blocks();
     }
-    to_data() {
+    to_data(start) {
+      if(start == undefined) {
+        start = 0;
+      }
       var pipeline = [];
       for( var i in this.pipeline ) {
         var block = this.pipeline[i];
@@ -188,22 +246,24 @@
         }
         pipeline.push( { 'processor': processor_name, 'parameters': params } );
       }
-      return { pipeline: pipeline, submit_time: Date.now() };
+      return { pipeline: pipeline, submit_time: Date.now(), start: start };
     }
-    to_json() {
-      return JSON.stringify(this.to_data());
+    to_json(start) {
+      return JSON.stringify(this.to_data(start));
     }
-    submit_pipeline() {
+    submit_pipeline(start) {
       if(this.output_id) {
         $("#"+this.output_id)[0].value = "";
       }
-      call_function_callback("$app_id", this.to_json(), "run_pipeline", (data) => {
+      call_function_callback("$app_id", this.to_json(start), "run_pipeline", (data) => {
         if(this.output_id) {
           if(typeof data == "string" || typeof data == "number") {
             $("#"+this.output_id)[0].value += data;
           } else {
             $("#"+this.output_id)[0].value += JSON.stringify(data);
           }
+        } else {
+          alert(JSON.stringify(data));
         }
       });
     }

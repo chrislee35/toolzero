@@ -15,7 +15,6 @@ class TemplateTransform(StaxProcessor):
 
     def process(self, input=None):
         template = input['params']['template']
-        print(input['input'])
         if not template:
             val = input['input']
         elif type(input['input']) == dict:
@@ -23,5 +22,5 @@ class TemplateTransform(StaxProcessor):
         elif type(input['input']) == list:
             val = template.format(*input['input'])
         else:
-            val = input['input'].format(input['input'])
+            val = template.format(input['input'])
         return val

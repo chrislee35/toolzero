@@ -23,5 +23,6 @@ class StaxApp(BaseTool):
         yield self.success(processors)
 
     def run_pipeline(self, **kwargs):
-        for message in self.engine.submit_pipeline(kwargs['pipeline']):
+        start = int(kwargs.get('start', 0))
+        for message in self.engine.submit_pipeline(kwargs['pipeline'], start):
             yield self.success(message)
