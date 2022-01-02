@@ -5,12 +5,14 @@ class StreamToStringTransform(StaxProcessor):
     NAME = 'Stream to String'
     FOLDER = 'data'
 
-    PARAMETERS = []
+    PARAMETERS = [
+        StaxParameter('encoding', 'string', 'UTF-8')
+    ]
     INPUT_TYPES = ['bytes_generator']
-    OUTPUT_TYPE = 'string'
+    OUTPUT_TYPE = 'generator'
 
     def process(self, input):
+        encoding = input['params']['encoding']
         buf = ""
         for item in input['input']:
-            buf += str(item.decode('UTF-8'))
-        return buf
+            yield str(item.decode(encoding))

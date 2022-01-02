@@ -19,7 +19,7 @@ class WebPrint(StaxProcessor):
         elif type(message) == dict:
             output = json.dumps(message, indent=2)
         elif type(message) == list or type(message) == types.GeneratorType:
-            return process_list(self, message);
+            return self.process_list(message);
         else:
             output = str(message)
         return output

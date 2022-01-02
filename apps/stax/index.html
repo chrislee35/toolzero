@@ -54,6 +54,12 @@
     padding-bottom: 5px;
     color: black;
   }
+  .proc_inst_name {
+    font-size: 14pt;
+    font-weight: bold;
+    font-variant: small-caps;
+    color: #0f494f;
+  }
   .folder_custom {
     background-color: #999;
   }
@@ -73,6 +79,7 @@
     background-color: #666;
     color: #999;
     border: thin solid #633;
+    display: none;
   }
   .processor_output_type {
     font-variant: all-caps;
@@ -129,7 +136,7 @@
       // render parameters
       var param_form = "";
       if(params.length > 0) {
-        param_form = "<form>";
+        param_form = "<form><table>";
         for(var i in params) {
           var p = params[i];
           var d = "";
@@ -138,14 +145,17 @@
           }
           var input_id = uuid1();
           p['id'] = input_id;
+          param_form += "<tr>";
           if ( p['type'] == 'textarea' ) {
             d = p['default'] || ""
-            param_form += "<br/>" + p['name'] + "<textarea id='" + input_id + "'>" + d + "</textarea>";
+            param_form += "<th>" + p['name'] + "</th>";
+            param_form += "<td><textarea id='" + input_id + "'>" + d + "</textarea></td>";
             this.output_id = input_id;
           } else {
-            param_form += "<br/>" + p['name'] + "<input type='" + p['type'] +
-              "' id='" + input_id + "'" + d + ">";
+            param_form += "<th>" + p['name'] + "</th>";
+            param_form += "<td><input type='" + p['type'] + "' id='" + input_id + "'" + d + "></td>";
           }
+          param_form += "</tr>\n";
         }
       }
       // create the next pipeline processor id
@@ -154,11 +164,11 @@
       // append the processor to the pipeline visualization
       if(proc['inputs'].indexOf('None') > -1) {
         $('#pipeline_$app_id').append(
-          "<div data-proc-id='"+ proc_id +"' class='processor_instance "+folder_class+" playable' onclick='stax_$app_id.submit_pipeline(this.dataset.procId);'>"+name+param_form+"</div>"
+          "<div data-proc-id='"+ proc_id +"' class='processor_instance "+folder_class+" playable' onclick='stax_$app_id.submit_pipeline(this.dataset.procId);'><span class='proc_inst_name'>"+name+"</span>"+param_form+"</div>"
         );
       } else {
         $('#pipeline_$app_id').append(
-          "<div data-proc-id='"+ proc_id +"' class='processor_instance "+folder_class+"''>"+name+param_form+"</div>"
+          "<div data-proc-id='"+ proc_id +"' class='processor_instance "+folder_class+"'><span class='proc_inst_name'>"+name+"</span>"+param_form+"</div>"
         );
       }
 
