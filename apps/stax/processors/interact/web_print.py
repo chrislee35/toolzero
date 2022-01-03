@@ -1,5 +1,7 @@
 from apps.stax import StaxProcessor, StaxParameter
-import json, types
+import json
+import types
+
 
 class WebPrint(StaxProcessor):
     INITIALIZED = False
@@ -18,8 +20,8 @@ class WebPrint(StaxProcessor):
             output = message
         elif type(message) == dict:
             output = json.dumps(message, indent=2)
-        elif type(message) == list or type(message) == types.GeneratorType:
-            return self.process_list(message);
+        elif type(message) == list or isinstance(message, types.GeneratorType):
+            return self.process_list(message)
         else:
             output = str(message)
         return output

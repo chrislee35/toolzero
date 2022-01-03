@@ -1,6 +1,7 @@
 import os
 from apps.stax import StaxProcessor, StaxParameter
 
+
 class MoveFileProcessor(StaxProcessor):
     INITIALIZED = False
     NAME = 'Move File'

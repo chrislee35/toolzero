@@ -1,5 +1,6 @@
 from apps.stax import StaxProcessor, StaxParameter
 
+
 class TemplateTransform(StaxProcessor):
     INITIALIZED = False
     NAME = 'Template Transform'

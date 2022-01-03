@@ -1,5 +1,5 @@
-import tempfile
 from apps.stax import StaxProcessor
+
 
 class ReadFileProcessor(StaxProcessor):
     INITIALIZED = False

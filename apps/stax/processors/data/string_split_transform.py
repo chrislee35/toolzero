@@ -1,17 +1,18 @@
 from apps.stax import StaxProcessor, StaxParameter
 
+
 class StringSplitTransform(StaxProcessor):
     INITIALIZED = False
     NAME = 'String Split'
     FOLDER = 'data'
 
     PARAMETERS = [
-        StaxParameter('delimeter', 'string', '\n')
+        StaxParameter('delimeter', 'string', '\\n')
     ]
     INPUT_TYPES = ['string']
     OUTPUT_TYPE = 'list'
 
     def process(self, input):
         string = input['input']
-        delim = input['params']['delimeter']
+        delim = f"{input['params']['delimeter']}"
         return string.split(delim)

@@ -1,5 +1,7 @@
 from apps.stax import StaxProcessor
-import json, types
+import json
+import types
+
 
 class CliPrint(StaxProcessor):
     INITIALIZED = False
@@ -16,8 +18,8 @@ class CliPrint(StaxProcessor):
             output = message
         elif type(message) == dict:
             output = json.dumps(message, indent=2)
-        elif type(message) == list or type(message) == types.GeneratorType:
-            return process_list(self, message);
+        elif type(message) == list or isinstance(message, types.GeneratorType):
+            return self.process_list(self, message)
         else:
             output = str(message)
         print(output)

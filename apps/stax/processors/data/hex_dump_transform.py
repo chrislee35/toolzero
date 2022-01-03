@@ -1,5 +1,6 @@
 from apps.stax import StaxProcessor
 
+
 class HexDumpTransform(StaxProcessor):
     INITIALIZED = False
     NAME = 'Hex Dump'
@@ -17,13 +18,19 @@ class HexDumpTransform(StaxProcessor):
         for buf in input['input']:
             buffer += buf
             while len(buffer) >= 16:
-                line = "%04x: %s  %s" % (offset, buffer[0:16].hex(sep=' '), self.buf_2_ascii(buffer[0:16]))
+                line = "%04x: %s  %s" % (offset,
+                    buffer[0:16].hex(sep=' '),
+                    self.buf_2_ascii(buffer[0:16])
+                )
                 buffer = buffer[16:]
                 offset += 16
                 yield line
 
         if len(buffer) > 0:
-            line = "%04x: %s  %s" % (offset, buffer[0:16].hex(sep=' ').ljust(47), self.buf_2_ascii(buffer))
+            line = "%04x: %s  %s" % (offset,
+                buffer[0:16].hex(sep=' ').ljust(47),
+                self.buf_2_ascii(buffer)
+            )
             yield line
 
     def buf_2_ascii(self, buf):

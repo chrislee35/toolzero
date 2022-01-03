@@ -1,16 +1,17 @@
 from apps.stax import StaxProcessor, StaxParameter
 import inspect
 
-class LoadListVariable(StaxProcessor):
+
+class LoadBytesGeneratorVariable(StaxProcessor):
     INITIALIZED = False
-    NAME = 'Load List Variable'
+    NAME = 'Load Bytes Generator Variable'
     FOLDER = 'data'
 
     PARAMETERS = [
         StaxParameter('Variable', 'string', 'x')
     ]
     INPUT_TYPES = ['None']
-    OUTPUT_TYPE = 'list'
+    OUTPUT_TYPE = 'bytes_generator'
 
     def process(self, input):
         variable = input['params']['Variable']

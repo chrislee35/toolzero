@@ -1,5 +1,6 @@
 from apps.stax import StaxProcessor, StaxParameter
 
+
 class StreamToStringTransform(StaxProcessor):
     INITIALIZED = False
     NAME = 'Stream to String'
@@ -13,6 +14,5 @@ class StreamToStringTransform(StaxProcessor):
 
     def process(self, input):
         encoding = input['params']['encoding']
-        buf = ""
         for item in input['input']:
             yield str(item.decode(encoding))

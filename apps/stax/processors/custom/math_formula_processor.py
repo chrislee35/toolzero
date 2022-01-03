@@ -2,6 +2,7 @@ from apps.stax import StaxProcessor, StaxParameter
 import ast
 import math
 
+
 class MathFormulaProcessor(StaxProcessor):
     INITIALIZED = False
     NAME = 'Math Formula'
@@ -24,8 +25,7 @@ class MathFormulaProcessor(StaxProcessor):
                  'tan', 'tanh']
 
             # creating a dictionary of safe methods
-            self.SAFE_DICT = dict([(k, getattr(math,k)) for k in safe_list])
-
+            self.SAFE_DICT = dict([(k, getattr(math, k)) for k in safe_list])
 
     def process(self, input):
         code = input['params']['code']

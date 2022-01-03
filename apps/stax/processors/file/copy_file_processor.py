@@ -1,6 +1,7 @@
 import shutil
 from apps.stax import StaxProcessor, StaxParameter
 
+
 class CopyFileProcessor(StaxProcessor):
     INITIALIZED = False
     NAME = 'Copy File'

@@ -1,6 +1,6 @@
 from homebase import BaseTool
 from .stax_engine import StaxEngine
-import time, json
+
 
 class StaxApp(BaseTool):
     def __init__(self):
@@ -18,7 +18,7 @@ class StaxApp(BaseTool):
                 'folder': p.FOLDER,
                 'inputs': p.INPUT_TYPES,
                 'output': p.OUTPUT_TYPE,
-                'parameters': [ { 'name': x.name, 'type': x.type, 'default': x.default } for x in params ]
+                'parameters': [x.to_data() for x in params]
             }
         yield self.success(processors)
 

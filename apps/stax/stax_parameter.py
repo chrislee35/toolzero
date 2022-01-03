@@ -1,6 +1,7 @@
 from datetime import datetime
 import re
 
+
 class StaxParameter:
     def __init__(self, name, param_type, default=None, validator=None):
         self.name = name
@@ -23,7 +24,7 @@ class StaxParameter:
             elif self.type == 'color':
                 self.validator = self.color_validator
         if self.validator and default and not self.validate(default):
-            raise ArgumentError('Default value')
+            raise Exception('Default value')
 
     def validate(self, value):
         if not self.validator:
@@ -50,11 +51,11 @@ class StaxParameter:
 
     def url_validator(self, u):
         url_regex = re.compile(
-            r'^(?:http|ftp)s?://' # http:// or https://
-            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
-            r'localhost|' #localhost...
-            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
-            r'(?::\d+)?' # optional port
+            r'^(?:http|ftp)s?://'  # http:// or https://
+            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
+            r'localhost|'  # localhost...
+            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
+            r'(?::\d+)?'  # optional port
             r'(?:/?|[/?]\S+)$', re.IGNORECASE)
         return url_regex.match(u) is not None
 
@@ -67,7 +68,7 @@ class StaxParameter:
 
     def time_validator(self, t):
         try:
-            datetime.strptime(d, '%I:%M %p')
+            datetime.strptime(t, '%I:%M %p')
             return True
         except ValueError:
             return False
@@ -75,6 +76,10 @@ class StaxParameter:
     def color_validator(self, c):
         color_regex = re.compile(r'#[a-f0-9]{6}')
         return color_regex.match(c) is not None
+
+    def to_data(self):
+        return {'name': self.name, 'type': self.type, 'default': self.default}
+
 
 class ComboboxParameter(StaxParameter):
     def __init__(self, name, options, default=None):
@@ -86,3 +91,7 @@ class ComboboxParameter(StaxParameter):
 
     def combo_validator(self, c):
         return c in self.options
+
+    def to_data(self):
+        return {'name': self.name, 'type': self.type, 'default': self.default,
+                'options': self.options}

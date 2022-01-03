@@ -1,5 +1,6 @@
-from apps.stax import StaxProcessor, StaxParameter
+from apps.stax import StaxProcessor
 import inspect
+
 
 class LoadVariables(StaxProcessor):
     INITIALIZED = False

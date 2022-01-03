@@ -1,12 +1,11 @@
 import socket
 from apps.stax import StaxProcessor
 
+
 class DnsProcessor(StaxProcessor):
     INITIALIZED = False
     NAME = 'DNS'
-    # which folder of processors should this processor appear
-    # None means that it doesn't appear anywhere
-    FOLDER = 'web' # should be str
+    FOLDER = 'web'
 
     # list of StaxParameter objects with the parameters to the processor
     PARAMETERS = []

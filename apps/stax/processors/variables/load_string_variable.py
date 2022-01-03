@@ -1,6 +1,7 @@
 from apps.stax import StaxProcessor, StaxParameter
 import inspect
 
+
 class LoadStringVariable(StaxProcessor):
     INITIALIZED = False
     NAME = 'Load String Variable'

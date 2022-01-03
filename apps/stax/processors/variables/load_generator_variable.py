@@ -1,6 +1,7 @@
 from apps.stax import StaxProcessor, StaxParameter
 import inspect
 
+
 class LoadGeneratorVariable(StaxProcessor):
     INITIALIZED = False
     NAME = 'Load Generator Variable'

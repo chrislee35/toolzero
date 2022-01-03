@@ -1,6 +1,7 @@
 from apps.stax import StaxProcessor, StaxParameter
 import inspect
 
+
 class StoreVariable(StaxProcessor):
     INITIALIZED = False
     NAME = 'Store Variable'
@@ -9,7 +10,8 @@ class StoreVariable(StaxProcessor):
     PARAMETERS = [
         StaxParameter('name', 'string', 'x')
     ]
-    INPUT_TYPES = ['list', 'string', 'numeric', 'dict', 'generator', 'bytes_generator']
+    INPUT_TYPES = ['list', 'string', 'numeric', 'dict', 'generator',
+        'bytes_generator']
     OUTPUT_TYPE = 'None'
 
     def process(self, input):

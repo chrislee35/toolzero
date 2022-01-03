@@ -1,5 +1,6 @@
 from apps.stax import StaxProcessor, StaxParameter
 
+
 class InputNumeric(StaxProcessor):
     INITIALIZED = False
     NAME = 'Input Number'

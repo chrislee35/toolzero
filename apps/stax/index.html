@@ -75,6 +75,9 @@
   .folder_web {
     background-color: #fcc;
   }
+  .folder_variables {
+    background-color: #f99;
+  }
   .disabled {
     background-color: #666;
     color: #999;
@@ -146,13 +149,28 @@
           var input_id = uuid1();
           p['id'] = input_id;
           param_form += "<tr>";
+          param_form += "<th>" + p['name'] + "</th>";
           if ( p['type'] == 'textarea' ) {
             d = p['default'] || ""
-            param_form += "<th>" + p['name'] + "</th>";
             param_form += "<td><textarea id='" + input_id + "'>" + d + "</textarea></td>";
             this.output_id = input_id;
+          } else if ( p['type'] == 'boolean' ) {
+            d = '';
+            if(p['default']) { d = 'checked'; }
+            param_form += "<td><input type='checkbox' id='" + input_id + "'" + d + "></td>";
+          } else if ( p['type'] == 'combo' ) {
+            d = p['default'];
+            param_form += "<td><select id='"+ input_id + "'>";
+            for(var i in p['options']) {
+              var op = p['options'][i]
+              param_form += "<option value='"+ op +"'";
+              if( d == op ) {
+                param_form += " checked";
+              }
+              param_form += ">"+op+"</option>\n";
+            }
+            param_form += "</select></td>\n";
           } else {
-            param_form += "<th>" + p['name'] + "</th>";
             param_form += "<td><input type='" + p['type'] + "' id='" + input_id + "'" + d + "></td>";
           }
           param_form += "</tr>\n";
@@ -251,6 +269,9 @@
           var p = block['parameters'][j];
           var input_id = p['id'];
           var input_value = $('#'+input_id)[0].value;
+          if($('#'+input_id)[0].type == "checkbox") {
+            input_value = $('#'+input_id)[0].checked;
+          }
           var input_name = p['name'];
           params[input_name] = input_value;
         }

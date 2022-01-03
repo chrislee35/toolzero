@@ -1,5 +1,7 @@
 import tempfile
+import json
 from apps.stax import StaxProcessor, StaxParameter
+
 
 class WriteFileProcessor(StaxProcessor):
     INITIALIZED = False
@@ -25,7 +27,11 @@ class WriteFileProcessor(StaxProcessor):
             elif type(buffer) in [str, bytes]:
                 tmpfile.write(buffer.encode(input['params']['encoding']))
             elif type(buffer) == list:
-                tmpfile.write(input['params']['list join character'].join([str(x) for x in buffer]))
+                tmpfile.write(
+                    input['params']['list join character'].join(
+                        [str(x) for x in buffer]
+                    )
+                )
             if input['params']['add newline'] != 'no':
                 tmpfile.write('\n'.encode(input['params']['encoding']))
         tmpfile.close()

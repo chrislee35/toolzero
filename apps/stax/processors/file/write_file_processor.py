@@ -1,6 +1,7 @@
 import tempfile
 from apps.stax import StaxProcessor
 
+
 class WriteFileProcessor(StaxProcessor):
     INITIALIZED = False
     NAME = 'Write File'

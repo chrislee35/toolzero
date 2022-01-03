@@ -1,5 +1,6 @@
 from apps.stax import StaxProcessor
 
+
 class ToGenerator(StaxProcessor):
     INITIALIZED = False
     NAME = 'To Generator'

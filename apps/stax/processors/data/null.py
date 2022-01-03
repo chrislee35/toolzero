@@ -1,5 +1,5 @@
-from apps.stax import StaxProcessor, StaxParameter
-import inspect
+from apps.stax import StaxProcessor
+
 
 class Null(StaxProcessor):
     INITIALIZED = False
@@ -7,7 +7,8 @@ class Null(StaxProcessor):
     FOLDER = 'data'
 
     PARAMETERS = []
-    INPUT_TYPES = ['list', 'string', 'numeric', 'dict', 'generator', 'bytes_generator']
+    INPUT_TYPES = ['list', 'string', 'numeric', 'dict', 'generator',
+        'bytes_generator']
     OUTPUT_TYPE = 'None'
 
     def process(self, input):

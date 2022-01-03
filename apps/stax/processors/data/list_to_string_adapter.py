@@ -1,4 +1,5 @@
-from apps.stax import StaxProcessor, StaxParameter
+from apps.stax import StaxProcessor
+
 
 class ListToStringAdapter(StaxProcessor):
     INITIALIZED = False
@@ -6,10 +7,10 @@ class ListToStringAdapter(StaxProcessor):
     FOLDER = 'data'
 
     PARAMETERS = []
-    INPUT_TYPES = ['list','generator']
-    OUTPUT_TYPE = 'string' # this is a special case
+    INPUT_TYPES = ['list', 'generator']
+    OUTPUT_TYPE = 'string'
 
     def process(self, input):
         mylist = input['input']
         for item in mylist:
-          yield item
+            yield item

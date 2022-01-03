@@ -1,16 +1,17 @@
 from apps.stax import StaxProcessor, StaxParameter
 import inspect
 
-class LoadNumericVariable(StaxProcessor):
+
+class LoadListVariable(StaxProcessor):
     INITIALIZED = False
-    NAME = 'Load Numeric Variable'
+    NAME = 'Load List Variable'
     FOLDER = 'data'
 
     PARAMETERS = [
         StaxParameter('Variable', 'string', 'x')
     ]
     INPUT_TYPES = ['None']
-    OUTPUT_TYPE = 'numeric'
+    OUTPUT_TYPE = 'list'
 
     def process(self, input):
         variable = input['params']['Variable']

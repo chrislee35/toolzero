@@ -1,6 +1,7 @@
 from apps.stax import StaxProcessor, StaxParameter
 import inspect
 
+
 class LoadDictVariable(StaxProcessor):
     INITIALIZED = False
     NAME = 'Load Dictionary Variable'

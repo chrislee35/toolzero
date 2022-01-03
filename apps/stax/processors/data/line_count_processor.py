@@ -1,5 +1,6 @@
 from apps.stax import StaxProcessor
 
+
 class LineCountProcessor(StaxProcessor):
     INITIALIZED = False
     NAME = 'Line Count'

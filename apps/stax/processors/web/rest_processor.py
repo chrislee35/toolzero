@@ -1,18 +1,14 @@
 import requests
 from apps.stax import StaxProcessor
 
+
 class RestProcessor(StaxProcessor):
     INITIALIZED = False
     NAME = 'REST'
-    # which folder of processors should this processor appear
-    # None means that it doesn't appear anywhere
-    FOLDER = 'web' # should be str
+    FOLDER = 'web'
 
-    # list of StaxParameter objects with the parameters to the processor
     PARAMETERS = []
-    # input is a single URL
     INPUT_TYPES = ['string']
-    # output is the decoded json
     OUTPUT_TYPE = 'dict'
 
     def process(self, input):
