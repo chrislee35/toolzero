@@ -271,6 +271,8 @@
           var input_value = $('#'+input_id)[0].value;
           if($('#'+input_id)[0].type == "checkbox") {
             input_value = $('#'+input_id)[0].checked;
+          } else if ($('#'+input_id)[0].type == "number") {
+            input_value = parseInt(input_value);
           }
           var input_name = p['name'];
           params[input_name] = input_value;
