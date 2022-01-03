@@ -9,10 +9,14 @@ class StringSplitTransform(StaxProcessor):
     PARAMETERS = [
         StaxParameter('delimeter', 'string', '\\n')
     ]
-    INPUT_TYPES = ['string']
+    INPUT_TYPES = ['string', 'generator']
     OUTPUT_TYPE = 'list'
 
     def process(self, input):
         string = input['input']
-        delim = f"{input['params']['delimeter']}"
-        return string.split(delim)
+        delim = input['params']['delimeter'].replace('\\n', '\n').replace('\\t', '\t')
+        if type(string) == str:
+            return string.split(delim)
+        else:
+            for s in string:
+                yield s.split(delim)

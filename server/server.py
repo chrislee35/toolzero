@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import time, os, json, logging
+import time
+import os
+import json
+import logging
 from uuid import uuid1 as uuid
 from mimetypes import guess_type
 from threading import Thread
@@ -13,6 +16,7 @@ from websocket_server import WebsocketServer
 import ssl
 
 token = uuid().hex
+token = "016c64c66cb211ecb284997285e5c919"
 token_cookie = cookie()
 token_cookie['token'] = token
 token_cookie['token']['httponly'] = True
@@ -20,15 +24,16 @@ token_cookie['token']['max-age'] = 7*24*60*60
 token_cookie['token']['expires'] = BaseHTTPRequestHandler.date_time_string(time.time()+(7*24*60*60))
 token_cookie['token']['secure'] = True
 
-token_cookie_string = token_cookie.output().split(': ',1)[1]
+token_cookie_string = token_cookie.output().split(': ', 1)[1]
 active_apps = {}
 active_callbacks = {}
 
 ws_url = 'ws://127.0.0.1:13254'
 
+
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     def _check_token_cookie(self):
-        cookiestring = "\n".join(self.headers.get_all('Cookie',failobj=[]))
+        cookiestring = "\n".join(self.headers.get_all('Cookie', failobj=[]))
         c = cookie()
         c.load(cookiestring)
         global token
@@ -47,14 +52,13 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
                 return True
         return False
 
-    def _set_headers(self, c = None):
+    def _set_headers(self, c=None):
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
         if c:
-            cookiestring = c.output().split(': ',1)[1]
+            cookiestring = c.output().split(': ', 1)[1]
             self.send_header('Set-Cookie', cookiestring)
         self.end_headers()
-
 
     def _return_file(self, filename):
         if not os.path.exists(filename):
@@ -86,7 +90,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         p = urlparse(self.path)
-        path = p.path.replace('..','.')
+        path = p.path.replace('..', '.')
 
         global active_apps
         if path == '/' or path == '/index.html':
@@ -102,7 +106,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             self._return_file("html"+path)
         elif path == '/listapps':
             apps_list = self._list_apps()
-            self._return_json(200, {'appslist': apps_list })
+            self._return_json(200, {'appslist': apps_list})
         elif path.startswith('/apps/') and os.path.exists(path[1:]):
             # generate uuid for the app instance
             app_id = uuid().hex
@@ -128,7 +132,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             # read the page and replace $app_id
             page = open(page_filename, 'r').read().replace('$app_id', app_id)
             # return the page in the data structure
-            self._return_json(200, { 'app_id': app_id, 'page': page, 'name': app_name })
+            self._return_json(200, {'app_id': app_id, 'page': page, 'name': app_name})
         elif path.startswith('/jspyapps/'):
             # generate uuid for the app instance
             app_id = uuid().hex
@@ -149,20 +153,20 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             active_apps[app_id] = app
 
             # return the page in the data structure
-            self._return_json(200, { 'app_id': app_id, 'page': page, 'name': app_name })
+            self._return_json(200, {'app_id': app_id, 'page': page, 'name': app_name})
         else:
             self._return_file('html/doesnotexist.html')
 
     def do_DELETE(self):
         p = urlparse(self.path)
-        path = p.path.replace('..','.')
+        path = p.path.replace('..', '.')
         if not self._check_token_cookie():
             self.send_response(403)
             self.end_headers()
             return
 
         if path.startswith('/apps/'):
-            _,cal,app_id = path.split('/')
+            _, cal, app_id = path.split('/')
 
             # check if the app_id exists and is active
             if not active_apps.get(app_id):
@@ -186,16 +190,16 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
                     active_callbacks.pop(callback_id)
 
             active_apps.pop(app_id)
-            self._return_json(200, { 'status': 'success', 'app_id': app_id })
+            self._return_json(200, {'status': 'success', 'app_id': app_id})
         else:
             self.send_header(404)
             self.end_headers()
             return
 
     def _load_app(self, app_name):
-        name = 'apps.'+  app_name
+        name = 'apps.' + app_name
         mod = __import__(name, fromlist=[''])
-        kls = [x for x in dir(mod) if not '_' in x and not x == 'BaseTool']
+        kls = [x for x in dir(mod) if '_' not in x and not x == 'BaseTool']
         for kl in kls:
             print("mod.%s" % kl)
             klass = eval("mod.%s" % kl)
@@ -205,7 +209,8 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 
     def _list_apps(self):
         apps_list = []
-        import glob, os
+        import glob
+        import os
         # go through each item in the apps directory
         # TODO: process all configured app directories
         for p in glob.glob('apps/*'):
@@ -235,25 +240,25 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         p = urlparse(self.path)
-        path = p.path.replace('..','.')
+        path = p.path.replace('..', '.')
         if not self._check_token_cookie():
             self.send_response(403)
             self.end_headers()
             return
 
         if path.startswith('/call/'):
-            _,cal,app_id,function = path.split('/')
+            _, cal, app_id, function = path.split('/')
 
             # check if the app_id exists and is active
             if not active_apps.get(app_id):
-                self.send_header(404)
+                self.send_response(404)
                 self.end_headers()
                 return
 
             app = active_apps[app_id]
             # check if the app responds to the function
             if not hasattr(app, function):
-                return self._return_json(404, { 'status': 'error', 'error': 'function does not exist' } )
+                return self._return_json(404, {'status': 'error', 'error': 'function does not exist'})
 
             # serialize the post data as parameters
             content_len = int(self.headers.get('content-length', 0))

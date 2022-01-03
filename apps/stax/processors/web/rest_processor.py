@@ -16,5 +16,5 @@ class RestProcessor(StaxProcessor):
         url = input['input']
         if url:
             r = requests.get(url)
-            self.output = r.json()
-        self.ready = self.done = True
+            return r.json()
+        return None

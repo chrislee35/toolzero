@@ -9,13 +9,14 @@ class HttpProcessor(StaxProcessor):
 
     PARAMETERS = []
     INPUT_TYPES = ['string']
-    OUTPUT_TYPE = 'stream'
+    OUTPUT_TYPE = 'bytes_generator'
 
     def process(self, input):
         url = input['input']
         if url:
             r = requests.get(url)
             for chunk in r.iter_content(chunk_size=1024):
-                return chunk
+                print(chunk)
+                yield chunk
         else:
             yield None

@@ -119,12 +119,14 @@ class StaxEngine:
                 'params': entry['params']
             }
             last_output = entry['proc'].process(input)
+            #print(last_output)
             # if generator and output type is scalar, then we are unrolling a loop
             if type(last_output) == types.GeneratorType and entry['proc'].OUTPUT_TYPE not in ['generator', 'bytes_generator']:
+                lo = None
                 for item in last_output:
                     lo = self.run_pipeline(start+i+1, item)
                 last_output = lo
-                break # don't run the rest of the pipeline in this call of the function
+                break  # don't run the rest of the pipeline in this call of the function
         return last_output
 
     def submit_pipeline(self, pipeline, start=0):
