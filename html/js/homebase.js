@@ -1,3 +1,48 @@
+function EventSource2(url) {
+    this.url = url;
+    this.es = null;
+    this.listeners = {};
+}
+
+EventSource2.prototype = {
+    constructor: EventSource2,
+
+    connect: function() {
+        console.log("SSE Connecting to "+this.url)
+        this.es = new EventSource(this.url);
+        this.bindEvents();
+    },
+
+    disconnect: function() {
+      console.log("SSE Disconnecting")
+        if(this.es) {
+          this.es.close();
+          this.es = null;
+        }
+    },
+
+    bindEvents: function() {
+        for ( var type in this.listeners ) {
+            var evs = this.listeners[type];
+            for( var i = 0; i < evs.length; ++i ) {
+                this.es.addEventListener( type, evs[i], false );
+            }
+        }
+    },
+
+    addEventListener: function( type, fn ) {
+        if( !this.listeners[type] ) {
+            this.listeners[type] = [];
+        }
+
+        this.listeners[type].push( fn );
+        if( this.es ) {
+            this.bindEvents();
+        }
+    }
+}
+
+
 $.getJSON( "listapps", function(data) {
   console.log(data);
   $.each(data['appslist'], function(i, app) {
@@ -158,7 +203,6 @@ function render_button(field, app_id) {
   var o = document.createElement('input');
   o.setAttribute('type', 'button');
   o.setAttribute('value', field['text']);
-  console.log(field);
   var onclick = field['onclick'];
   o.onclick = function(event) {
     var form_data = form_to_json(document.forms[app_id]);
@@ -233,31 +277,12 @@ function render_checkbox_field(field) {
 }
 
 function call_function(app_id, form_data, callback_name) {
-  document.getElementById(app_id+'_progress').value = 0;
-  $.ajax({
-    type: "POST",
-    url: "call/"+app_id+"/"+callback_name,
-    data: form_data,
-    success: function(data) {
-      connect_websocket(data, app_id);
-    },
-    dataType: 'json'
-  });
+  var callback = (res) => { console.log(res); $('#res_'+app_id).append(res) };
+  call_function_callback(app_id, form_data, callback_name, callback);
 }
 
 function call_function_callback(app_id, form_data, callback_name, callback) {
-  if(document.getElementById(app_id+'_progress')) {
-    document.getElementById(app_id+'_progress').value = 0;
-  }
-  $.ajax({
-    type: "POST",
-    url: "call/"+app_id+"/"+callback_name,
-    data: form_data,
-    success: function(data) {
-      connect_websocket_callback(data, callback);
-    },
-    dataType: 'json'
-  });
+  call_callback("/call/"+app_id+"/"+callback_name, app_id, form_data, callback);
 }
 
 function proxy(callback, method, url, params, body, headers) {
@@ -266,68 +291,36 @@ function proxy(callback, method, url, params, body, headers) {
       'url': url,
       'params': params,
       'body': body,
-      'headers': headers
+      'headers': headers,
+      'method': method
     }
   );
+  call_callback("/proxy", '', proxy_request, callback);
+}
 
+function call_callback(url, app_id, form_data, callback) {
+  if(document.getElementById(app_id+'_progress')) {
+    document.getElementById(app_id+'_progress').value = 0;
+  }
   $.ajax({
     type: "POST",
-    url: "proxy",
-    data: proxy_request,
+    url: url,
+    data: form_data,
     success: function(data) {
-      connect_websocket_callback(data, callback); // how do we connect this to the result pane?
+      var eventSource = new EventSource2('/events/'+data['callback_id']);
+      eventSource.addEventListener('message', event => {
+        var data = JSON.parse(event.data);
+        callback(data['results']);
+        if(data['progress']) {
+          document.getElementById(app_id+'_progress').value = data['progress'];
+        }
+      });
+      eventSource.addEventListener('leave', event => {
+        eventSource.disconnect();
+      });
+      eventSource.connect();
     },
     dataType: 'json'
-  });
-}
-
-function connect_websocket(data, app_id) {
-  var ws = new WebSocket(data['websocket'], 'results');
-  var res = $('#res_'+app_id);
-  ws.onopen = function(event) {
-    ws.send(data['callback_id']);
-  };
-  ws.onmessage = function(event) {
-    data = JSON.parse(event.data);
-    if(data['status'] == 'success') {
-      res.append(data['results']);
-    }
-    if(data['progress'] != undefined) {
-      document.getElementById(app_id+'_progress').value = data['progress'];
-    }
-  };
-  ws.onclose = function(event) {
-    console.log(event.reason);
-  };
-}
-
-function connect_websocket_callback(data, callback) {
-  //console.log(data);
-  var ws = new WebSocket(data['websocket'], 'results');
-  ws.onopen = function(event) {
-    ws.send(data['callback_id']);
-  };
-  ws.onmessage = function(event) {
-    //console.log(event.data);
-    data = JSON.parse(event.data);
-    //console.log("connect_websocket_callback recieved data:");
-    //console.log(data);
-    if(data['status'] == 'success') {
-      callback(data['results']);
-    }
-    if(data['progress'] != undefined) {
-      document.getElementById('progress').value = data['progress'];
-    }
-  };
-  ws.onclose = function(event) {
-    console.log(event.reason);
-  };
-}
-
-function uuid1() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace( /[xy]/g , function(c) {
-    var rnd = Math.random()*16 |0, v = c === 'x' ? rnd : (rnd&0x3|0x8) ;
-    return v.toString(16);
   });
 }
 

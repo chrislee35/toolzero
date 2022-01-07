@@ -9,6 +9,7 @@ class StaxApp(BaseTool):
         self.engine = StaxEngine()
 
     def list_processors(self, **kwargs):
+        print("Listing the processors")
         processors = {}
         for proc in self.engine.PROCESSORS:
             p = self.engine.PROCESSORS[proc]

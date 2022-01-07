@@ -8,11 +8,11 @@ from mimetypes import guess_type
 from threading import Thread
 from homebase import BaseTool
 
+from socketserver import ThreadingMixIn
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from http.cookies import SimpleCookie as cookie
 from urllib.parse import urlparse, parse_qs, urlencode, quote_plus
 import urllib3
-from websocket_server import WebsocketServer
 import ssl
 
 token = uuid().hex
@@ -28,8 +28,8 @@ token_cookie_string = token_cookie.output().split(': ', 1)[1]
 active_apps = {}
 active_callbacks = {}
 
-ws_url = 'ws://127.0.0.1:13254'
-
+class ThreadingServer(ThreadingMixIn, HTTPServer):
+    pass
 
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     def _check_token_cookie(self):
@@ -107,6 +107,12 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         elif path == '/listapps':
             apps_list = self._list_apps()
             self._return_json(200, {'appslist': apps_list})
+        elif path.startswith('/events/'):
+            callback_id = path.split('/')[-1]
+            if not active_callbacks.get(callback_id):
+                self._return_forbidden()
+            else:
+                self.send_events(callback_id)
         elif path.startswith('/apps/') and os.path.exists(path[1:]):
             # generate uuid for the app instance
             app_id = uuid().hex
@@ -248,77 +254,77 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 
         if path.startswith('/call/'):
             _, cal, app_id, function = path.split('/')
-
-            # check if the app_id exists and is active
-            if not active_apps.get(app_id):
-                self.send_response(404)
-                self.end_headers()
-                return
-
-            app = active_apps[app_id]
-            # check if the app responds to the function
-            if not hasattr(app, function):
-                return self._return_json(404, {'status': 'error', 'error': 'function does not exist'})
-
-            # serialize the post data as parameters
-            content_len = int(self.headers.get('content-length', 0))
-            post_body = self.rfile.read(content_len)
-            callback_id = uuid().hex
-            print(post_body)
-            data = json.loads(post_body)
-
-            # allocate a WebSocket and attach a thread with the function
-
-            # respond with the websocket address, the front end with connect to it
-            fun = eval('app.%s' % function)
-            active_callbacks[callback_id] = { 'fun': fun, 'data': data, 'callback_id': callback_id, 'status': 'pending' }
-
-            self._return_json(200, { 'status': 'success', 'websocket': ws_url, 'callback_id': callback_id })
+            self.call_function(app_id, function)
         elif path == '/proxy':
             content_len = int(self.headers.get('content-length', 0))
             post_body = self.rfile.read(content_len)
             callback_id = uuid().hex
             data = json.loads(post_body)
-            print(data)
-            active_callbacks[callback_id] = { 'fun': proxy, 'data': data, 'callback_id': callback_id, 'status': 'pending' }
-            self._return_json(200, { 'status': 'success', 'websocket': ws_url, 'callback_id': callback_id })
+            active_callbacks[callback_id] = {
+                'fun': proxy,
+                'data': data,
+                'callback_id': callback_id,
+                'status': 'pending'
+            }
+            self._return_json(200, {'status': 'success', 'app_id': '',
+                'callback_id': callback_id})
         else:
             self.send_header(404)
             self.end_headers()
             return
 
-def new_client(client, server):
-    # determine the callback_id
-    print("Accepting new client")
+    def call_function(self, app_id, function):
+        # check if the app_id exists and is active
+        if not active_apps.get(app_id):
+            self.send_response(404)
+            self.end_headers()
+            return
 
-def new_message(client, server, message):
-    callback_id = message
-    # check the callback_id
-    if not active_callbacks.get(callback_id):
-        print("unknown callback id")
-        client['handler'].send_close(1001)
+        app = active_apps[app_id]
+        # check if the app responds to the function
+        if not hasattr(app, function):
+            return self._return_json(404, {'status': 'error',
+                'error': 'function does not exist'})
 
-    print("calling callback")
-    # call the callback function, pass in the client and server
-    cb = active_callbacks[callback_id]
-    cb['server'] = server
-    cb['client'] = client
-    cb['thread'] = Thread(target=cb_runner, args=(client, server, cb))
-    cb['thread'].start()
+        # serialize the post data as parameters
+        content_len = int(self.headers.get('content-length', 0))
+        post_body = self.rfile.read(content_len)
+        callback_id = uuid().hex
+        data = json.loads(post_body)
 
-def cb_runner(client, server, cb):
-    cb['status'] = 'running'
-    gen = cb['fun'](**cb['data'])
-    code = 1000
-    for res in gen:
-        res_json = json.dumps(res)
-        server.send_message(client, res_json)
-        if cb['status'] == 'cancelled':
-            code = 1001
-            break
-    active_callbacks.pop(cb['callback_id'])
-    cb['status'] = 'finished'
-    client['handler'].send_close(code)
+        # respond with the websocket address, the front end with connect to it
+        fun = eval('app.%s' % function)
+        cb = active_callbacks[callback_id] = {
+            'fun': fun,
+            'data': data,
+            'callback_id': callback_id,
+            'status': 'pending'
+        }
+
+        self._return_json(200, {
+            'status': 'success',
+            'app_id': app_id,
+            'callback_id': callback_id
+        })
+
+    def send_events(self, callback_id):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/event-stream')
+        self.end_headers()
+        self.wfile.flush()
+
+        cb = active_callbacks[callback_id]
+        cb['status'] = 'running'
+        gen = cb['fun'](**cb['data'])
+        for res in gen:
+            if cb['status'] != 'running':
+                break
+            buf = ("data: %s\n\n" % json.dumps(res)).encode('UTF-8')
+            self.wfile.write(buf)
+            self.wfile.flush()
+        active_callbacks.pop(cb['callback_id'])
+        cb['status'] = 'finished'
+
 
 def proxy(**kwargs):
     if not kwargs.get('url'):
@@ -332,7 +338,7 @@ def proxy(**kwargs):
         method = 'POST'
     if kwargs.get('method'):
         method = kwargs['method']
-    content = kwargs.get('content_type','application/json')
+    content = kwargs.get('content_type', 'application/json')
     accept = kwargs.get('accept', 'application/json')
 
     http = urllib3.PoolManager()
@@ -351,22 +357,18 @@ def proxy(**kwargs):
     r = http.request(
         method,
         kwargs['url'],
-        body = encoded_data,
-        headers = headers
+        body=encoded_data,
+        headers=headers
     )
     print(r.data)
 
-    yield { 'status': 'success', 'results': json.loads(r.data.decode('utf-8')) }
+    yield {'status': 'success', 'results': json.loads(r.data.decode('utf-8'))}
 
-server = WebsocketServer(13254, host='127.0.0.1', loglevel=logging.INFO)#, key="keys/key.pem", cert="keys/cert.pem")
-server.set_fn_new_client(new_client)
-server.set_fn_message_received(new_message)
 
-httpd = HTTPServer(('localhost', 4443), SimpleHTTPRequestHandler)
-httpd.socket = ssl.wrap_socket (httpd.socket,
-        keyfile="keys/key.pem",
-        certfile='keys/cert.pem', server_side=True)
+httpd = ThreadingServer(('localhost', 4443), SimpleHTTPRequestHandler)
+#httpd.socket = ssl.wrap_socket(httpd.socket,
+#        keyfile="keys/key.pem",
+#        certfile='keys/cert.pem', server_side=True)
 
 print("https://127.0.0.1:4443/?token="+token)
-Thread(target=httpd.serve_forever).start()
-server.run_forever()
+httpd.serve_forever()

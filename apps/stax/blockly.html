@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <title>Blockly Stax</title>
+  <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+  <style type='text/css'>
+    #blocklyArea {
+      height: 99%;
+    }
+  </style>
+</head>
+
+<body>
+
+
+<div id="blocklyArea"></div>
+<div id="blocklyDiv" style="position: absolute; bottom: 0px; right: 0px;"></div>
+<script>
+  var blocklyArea = document.getElementById('blocklyArea');
+  var blocklyDiv = document.getElementById('blocklyDiv');
+  var toolbox = {
+    "kind": "flyoutToolbox",
+    "contents": [
+      {
+        "kind": "block",
+        "type": "controls_if"
+      },
+      {
+        "kind": "block",
+        "type": "controls_whileUntil"
+      },
+      {
+        "kind": "block",
+        "type": "rest"
+      },
+      {
+        "kind": "block",
+        "type": "http"
+      },
+      {
+        "kind": "block",
+        "type": "shell_command"
+      }
+    ]
+  };
+
+  Blockly.Blocks['rest'] = {
+    init: function() {
+      this.appendValueInput("URL")
+          .setCheck("String")
+          .appendField(new Blockly.FieldDropdown([["GET","GET"], ["POST","POST"], ["PUT","PUT"]]), "Method")
+          .appendField("URL");
+      this.appendValueInput("Data")
+          .setCheck("String")
+          .appendField("POST Data");
+      this.setOutput(true, "dict");
+      this.setColour(330);
+      this.setTooltip("Retrieve data from REST endpoint");
+      this.setHelpUrl("https://www.chrisleephd.us/stax/REST.html");
+    }
+  };
+
+  Blockly.Blocks['http'] = {
+    init: function() {
+      this.appendDummyInput()
+          .appendField("HTTP GET");
+      this.appendDummyInput()
+          .appendField(new Blockly.FieldDropdown([["GET","GET"], ["POST","POST"], ["HEAD","HEAD"], ["PUT","PUT"], ["DELETE","DELETE"], ["PATCH","PATCH"]]), "Method");
+      this.appendValueInput("URL")
+          .setCheck("String")
+          .appendField("URL");
+      this.setOutput(true, "bytes_generator");
+      this.setColour(230);
+   this.setTooltip("Fetches data from a URL");
+   this.setHelpUrl("https://www.chrisleephd.us/stax/HTTP.html");
+    }
+  };
+
+  Blockly.JavaScript['http'] = function(block) {
+    var dropdown_method = block.getFieldValue('Method');
+    var value_url = Blockly.JavaScript.valueToCode(block, 'URL', Blockly.JavaScript.ORDER_ATOMIC);
+    // TODO: Assemble JavaScript into code variable.
+    var code = '...';
+    // TODO: Change ORDER_NONE to the correct strength.
+    return [code, Blockly.JavaScript.ORDER_NONE];
+  };
+
+  Blockly.JavaScript['rest'] = function(block) {
+    var dropdown_method = block.getFieldValue('Method');
+    var value_url = Blockly.JavaScript.valueToCode(block, 'URL', Blockly.JavaScript.ORDER_ATOMIC);
+    var value_data = Blockly.JavaScript.valueToCode(block, 'Data', Blockly.JavaScript.ORDER_ATOMIC);
+    // TODO: Assemble JavaScript into code variable.
+    var code = '...)'
+    // TODO: Change ORDER_NONE to the correct strength.
+    return [code, Blockly.JavaScript.ORDER_NONE];
+  };
+
+  Blockly.Blocks['shell_command'] = {
+    init: function() {
+      this.appendDummyInput()
+          .appendField("Shell Command");
+      this.appendValueInput("Command")
+          .setCheck("String")
+          .appendField("Command");
+      this.appendValueInput("Standard In")
+          .setCheck(["generator", "None"])
+          .appendField("Standard In");
+      this.setOutput(true, "generator");
+      this.setColour(230);
+   this.setTooltip("");
+   this.setHelpUrl("");
+    }
+  };
+
+  Blockly.JavaScript['shell_command'] = function(block) {
+    var value_command = Blockly.JavaScript.valueToCode(block, 'Command', Blockly.JavaScript.ORDER_ATOMIC);
+    var value_standard_in = Blockly.JavaScript.valueToCode(block, 'Standard In', Blockly.JavaScript.ORDER_ATOMIC);
+    // TODO: Assemble JavaScript into code variable.
+    var code = '...';
+    // TODO: Change ORDER_NONE to the correct strength.
+    return [code, Blockly.JavaScript.ORDER_NONE];
+  };
+
+  var workspace = Blockly.inject(blocklyDiv, {toolbox: toolbox});
+  var onresize = function(e) {
+    // Compute the absolute coordinates and dimensions of blocklyArea.
+    var element = blocklyArea;
+    var x = 0;
+    var y = 0;
+    do {
+      x += element.offsetLeft;
+      y += element.offsetTop;
+      element = element.offsetParent;
+    } while (element);
+    // Position blocklyDiv over blocklyArea.
+    blocklyDiv.style.left = x + 'px';
+    blocklyDiv.style.top = y + 'px';
+    blocklyDiv.style.width = blocklyArea.offsetWidth + 'px';
+    blocklyDiv.style.height = blocklyArea.offsetHeight + 'px';
+    Blockly.svgResize(workspace);
+  };
+  window.addEventListener('resize', onresize, false);
+  onresize();
+
+  Blockly.svgResize(workspace);
+</script>
+
+
+</body>
+</html>
