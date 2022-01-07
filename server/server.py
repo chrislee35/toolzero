@@ -2,10 +2,9 @@
 import time
 import os
 import json
-import logging
+#import logging
 from uuid import uuid1 as uuid
 from mimetypes import guess_type
-from threading import Thread
 from homebase import BaseTool
 
 from socketserver import ThreadingMixIn
@@ -28,8 +27,10 @@ token_cookie_string = token_cookie.output().split(': ', 1)[1]
 active_apps = {}
 active_callbacks = {}
 
+
 class ThreadingServer(ThreadingMixIn, HTTPServer):
     pass
+
 
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     def _check_token_cookie(self):
@@ -294,7 +295,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 
         # respond with the websocket address, the front end with connect to it
         fun = eval('app.%s' % function)
-        cb = active_callbacks[callback_id] = {
+        active_callbacks[callback_id] = {
             'fun': fun,
             'data': data,
             'callback_id': callback_id,
@@ -366,9 +367,9 @@ def proxy(**kwargs):
 
 
 httpd = ThreadingServer(('localhost', 4443), SimpleHTTPRequestHandler)
-#httpd.socket = ssl.wrap_socket(httpd.socket,
-#        keyfile="keys/key.pem",
-#        certfile='keys/cert.pem', server_side=True)
+httpd.socket = ssl.wrap_socket(httpd.socket,
+    keyfile="keys/key.pem",
+    certfile='keys/cert.pem', server_side=True)
 
 print("https://127.0.0.1:4443/?token="+token)
 httpd.serve_forever()
