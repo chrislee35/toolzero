@@ -15,7 +15,8 @@ import urllib3
 import ssl
 
 token = uuid().hex
-token = "016c64c66cb211ecb284997285e5c919"
+# fixed token for testing
+token = "0"
 token_cookie = cookie()
 token_cookie['token'] = token
 token_cookie['token']['httponly'] = True
@@ -366,10 +367,12 @@ def proxy(**kwargs):
     yield {'status': 'success', 'results': json.loads(r.data.decode('utf-8'))}
 
 
+context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+context.load_cert_chain('keys/cert.pem', 'keys/key.pem')
+context.verify_mode = ssl.CERT_NONE
 httpd = ThreadingServer(('localhost', 4443), SimpleHTTPRequestHandler)
-httpd.socket = ssl.wrap_socket(httpd.socket,
-    keyfile="keys/key.pem",
-    certfile='keys/cert.pem', server_side=True)
+httpd.socket = context.wrap_socket(httpd.socket, server_side=True,
+    do_handshake_on_connect=False)
 
 print("https://127.0.0.1:4443/?token="+token)
 httpd.serve_forever()
