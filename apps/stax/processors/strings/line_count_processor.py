@@ -4,7 +4,7 @@ from apps.stax import StaxProcessor
 class LineCountProcessor(StaxProcessor):
     INITIALIZED = False
     NAME = 'Line Count'
-    FOLDER = 'data'
+    FOLDER = 'strings'
 
     PARAMETERS = []
     INPUT_TYPES = ['string']
@@ -14,7 +14,7 @@ class LineCountProcessor(StaxProcessor):
         StaxProcessor.__init__(self)
         self.count = 1
 
-    def process(self, input):
-        line = str(self.count)+":\t"+input['input']
-        self.count += 1
-        return line
+    def process(self, params, input):
+        for line in input:
+            yield str(self.count)+":\t"+line
+            self.count += 1

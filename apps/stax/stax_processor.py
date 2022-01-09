@@ -14,8 +14,14 @@ class StaxProcessor:
     # output is one of None, 'list', 'string', 'numeric', 'dict', 'generator', 'bytes_generator'
     OUTPUT_TYPE = None
 
-    def __init__(self):
-        pass
+    def __init__(self, parent):
+        self.parent = parent
+
+    def pause(self):
+        self.parent.pause()
+
+    def send_output(self, id, message):
+        self.parent.send_output(id, message)
 
     @classmethod
     def create(cls, **kwargs):
@@ -39,8 +45,3 @@ class StaxProcessor:
     def process(self, input=None):
         """ process a block of input and produces an output """
         raise UnimplementedException("This must be implemented in your subclass")
-
-    def end_record(self):
-        """ this is only used in raw data mode to signify the end of a chunk of data
-        this would be often used to end the write to a file or upload """
-        pass

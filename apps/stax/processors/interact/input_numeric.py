@@ -12,6 +12,6 @@ class InputNumeric(StaxProcessor):
     INPUT_TYPES = ['None']
     OUTPUT_TYPE = 'numeric'
 
-    def process(self, input=None):
-        val = input['params']['number']
-        return float(val)
+    def process(self, params, input):
+        val = params['number']
+        yield float(val)

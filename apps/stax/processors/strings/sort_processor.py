@@ -5,7 +5,7 @@ import random
 class SortProcessor(StaxProcessor):
     INITIALIZED = False
     NAME = 'Sort'
-    FOLDER = 'data'
+    FOLDER = 'strings'
 
     PARAMETERS = [
         ComboboxParameter('sort type', ['dictionary', 'numeric', 'random'],
@@ -13,27 +13,30 @@ class SortProcessor(StaxProcessor):
         StaxParameter('reverse', 'boolean', False),
         StaxParameter('unique', 'boolean', False)
     ]
-    INPUT_TYPES = ['list', 'generator']
-    OUTPUT_TYPE = 'list'
+    INPUT_TYPES = ['string', 'numeric']
+    OUTPUT_TYPE = 'input'
 
-    def process(self, input):
-        sort_type = input['params']['sort type']
-        reverse = input['params']['reverse']
-        unique = input['params']['unique']
+    def process(self, params, input):
+        sort_type = params['sort type']
+        reverse = params['reverse']
+        unique = params['unique']
 
-        if type(input['input']) != list:
-            input['input'] = list(input['input'])
+        if type(input) != list:
+            input = list(input)
 
         if unique:
-            input['input'] = list(set(input['input']))
+            input = list(set(input))
 
         if sort_type == 'numeric':
-            return sorted(input['input'], key=SortProcessor.numeric_sort,
-                reverse=reverse)
+            for item in sorted(input, key=SortProcessor.numeric_sort,
+                reverse=reverse):
+                yield item
         elif sort_type == 'random':
-            return random.sample(input['input'], len(input['input']))
+            for item in random.sample(input, len(input)):
+                yield item
         else:
-            return sorted(input['input'], reverse=reverse)
+            for item in sorted(input, reverse=reverse):
+                yield item
 
     @staticmethod
     def numeric_sort(x):

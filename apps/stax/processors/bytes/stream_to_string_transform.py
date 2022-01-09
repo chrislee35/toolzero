@@ -4,15 +4,15 @@ from apps.stax import StaxProcessor, StaxParameter
 class StreamToStringTransform(StaxProcessor):
     INITIALIZED = False
     NAME = 'Stream to String'
-    FOLDER = 'data'
+    FOLDER = 'bytes'
 
     PARAMETERS = [
         StaxParameter('encoding', 'string', 'UTF-8')
     ]
-    INPUT_TYPES = ['bytes_generator']
-    OUTPUT_TYPE = 'generator'
+    INPUT_TYPES = ['bytes']
+    OUTPUT_TYPE = 'string'
 
-    def process(self, input):
-        encoding = input['params']['encoding']
-        for item in input['input']:
+    def process(self, params, input):
+        encoding = params['encoding']
+        for item in input:
             yield str(item.decode(encoding))

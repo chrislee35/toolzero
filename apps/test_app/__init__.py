@@ -2,9 +2,10 @@ from homebase import BaseTool
 import time
 
 class TestApp(BaseTool):
-    def __init__(self):
+    def __init__(self, parent):
         self.name = "Test App"
         self.folder = "Test"
+        self.parent = parent
         self.data = {}
         self.fields = [
             {

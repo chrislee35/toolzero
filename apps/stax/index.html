@@ -60,24 +60,18 @@
     font-variant: small-caps;
     color: #0f494f;
   }
-  .folder_custom {
-    background-color: #999;
-  }
-  .folder_data {
-    background-color: #f9f;
-  }
-  .folder_file {
-    background-color: #99f;
-  }
-  .folder_interact {
-    background-color: #9f9;
-  }
-  .folder_web {
-    background-color: #fcc;
-  }
-  .folder_variables {
-    background-color: #f99;
-  }
+
+  .folder_bytes          { background-color: #888; }
+  .folder_custom         { background-color: #999; }
+  .folder_datastructures { background-color: #f9f; }
+  .folder_file           { background-color: #99f; }
+  .folder_flow           { background-color: #ff9; }
+  .folder_interact       { background-color: #9f9; }
+  .folder_math           { background-color: #9ff; }
+  .folder_strings        { background-color: #ccc; }
+  .folder_variables      { background-color: #f99; }
+  .folder_web            { background-color: #fcc; }
+
   .disabled {
     background-color: #666;
     color: #999;
@@ -118,7 +112,7 @@
 
   class Stax_$app_id {
     constructor() {
-      this.processors = [];
+      this.processors = {};
       this.last_output = 'None';
       this.pipeline = [];
       this.output_id = undefined;
@@ -128,7 +122,7 @@
     }
     render_block(proc) {
       var button = $("<div class='processor_block folder_"+proc['folder']+"'>"+proc['name']+"</div>");
-      button.click(this.add_block_to_pipeline);
+      button.click(this.add_block_to_pipeline_cb);
       $('#processor_list_$app_id').append(button);
     }
     render_processor(proc) {
@@ -152,8 +146,7 @@
           param_form += "<th>" + p['name'] + "</th>";
           if ( p['type'] == 'textarea' ) {
             d = p['default'] || ""
-            param_form += "<td><textarea id='" + input_id + "'>" + d + "</textarea></td>";
-            this.output_id = input_id;
+            param_form += "<td><textarea id='" + input_id + "' class='outputs'>" + d + "</textarea></td>";
           } else if ( p['type'] == 'boolean' ) {
             d = '';
             if(p['default']) { d = 'checked'; }
@@ -193,8 +186,10 @@
       $('#pipeline_$app_id').append(
         "<div class='processor_output_type "+output_type+"'>"+output_type+"</div>"
       );
-      this.last_output = output_type;
-      this.activate_valid_blocks();
+      if(output_type != 'input') {
+        this.last_output = output_type;
+        this.activate_valid_blocks();
+      }
     }
     activate_valid_blocks() {
       var self = this;
@@ -208,24 +203,33 @@
         }
       });
     }
-    add_block_to_pipeline() {
+    add_block_to_pipeline_cb() {
       var self = stax_$app_id;
       var button = $( this )[0];
       var name = button.innerText;
+      self.add_block_to_pipeline(name, undefined);
+    }
+    add_block_to_pipeline(name, parameters) {
+      // if parameters is undefined, then it defaults to the defaults
+      console.log(name);
       // copy the Proc Block to a Proc Instance
-      var proc = Object.assign({}, self.get_proc(name));
+      var proc = Object.assign({}, this.get_proc(name));
+      console.log(proc);
       // copy the Parameters
       var params = [];
       for(var i in proc['parameters']) {
         params.push(Object.assign({}, proc['parameters'][i]));
       }
       proc['parameters'] = params;
+      console.log(proc['parameters']);
+      console.log(parameters);
+
       // check if the last output is compatible.
-      if(proc['inputs'].indexOf(self.last_output) == -1) {
-        alert("Last output type was "+self.last_output+". "+name+" takes in one of "+input_types.join(", ") );
+      if(proc['inputs'].indexOf(this.last_output) == -1) {
+        alert("Last output type was "+this.last_output+". "+name+" takes in one of "+input_types.join(", ") );
       } else {
-        self.render_processor(proc);
-        self.pipeline.push(proc);
+        this.render_processor(proc);
+        this.pipeline.push(proc);
       }
     }
     remove_block_from_pipeline() {
@@ -255,6 +259,10 @@
         self.render_block(proc);
       }
       self.activate_valid_blocks();
+      self.render_menu_buttons();
+      if(localStorage.getItem("last_pipeline") != undefined) {
+        self.load_pipeline("last_pipeline")
+      }
     }
     to_data(start) {
       if(start == undefined) {
@@ -269,12 +277,13 @@
           var p = block['parameters'][j];
           var input_id = p['id'];
           var input_value = $('#'+input_id)[0].value;
-          if($('#'+input_id)[0].type == "checkbox") {
+          if (p['type'] == "boolean") {
             input_value = $('#'+input_id)[0].checked;
-          } else if ($('#'+input_id)[0].type == "number") {
+          } else if (p["type"] == "number") {
             input_value = parseInt(input_value);
           }
           var input_name = p['name'];
+          params['id'] = input_id;
           params[input_name] = input_value;
         }
         pipeline.push( { 'processor': processor_name, 'parameters': params } );
@@ -285,22 +294,79 @@
       return JSON.stringify(this.to_data(start));
     }
     submit_pipeline(start) {
-      if(this.output_id) {
-        $("#"+this.output_id)[0].value = "";
-      }
+      $(".outputs").val("");
+
+      var pipeline = this.to_json(0);
+      localStorage.setItem("last_pipeline", pipeline);
+
       call_function_callback("$app_id", this.to_json(start), "run_pipeline", (data) => {
-        if(this.output_id) {
-          if(typeof data == "string" || typeof data == "number") {
-            $("#"+this.output_id)[0].value += data;
+        console.log(data);
+        if(data['type'] == 'output' && data['id']) {
+          var message = data['message'];
+          if(typeof message == "string" || typeof message == "number") {
+            $("#"+data['id'])[0].value += message;
           } else {
-            $("#"+this.output_id)[0].value += JSON.stringify(data);
+            $("#"+data['id'])[0].value += JSON.stringify(message);
           }
         } else {
           alert(JSON.stringify(data));
         }
       });
     }
+    load_pipeline(name) {
+      var job = JSON.parse(localStorage.getItem(name));
+      var pipeline = job['pipeline'];
+      for( var i in pipeline ) {
+        var block = pipeline[i];
+        this.add_block_to_pipeline(block['processor'], block['parameters']);
+      }
+    }
+    save_pipeline(name) {
+      localStorage.setItem(name, this.to_json(0));
+    }
+    clear_pipeline() {
+      this.last_output = 'None';
+      this.pipeline = [];
+      this.output_id = undefined;
+      $('#pipeline_$app_id').empty();
+      this.render_menu_buttons();
+    }
+    render_menu_buttons() {
+      $('#pipeline_$app_id').append("<input type='button' value='load' onclick='stax_$app_id.load_dialog()'>");
+      $('#pipeline_$app_id').append("<input type='button' value='save' onclick='stax_$app_id.save_dialog()'>");
+      $('#pipeline_$app_id').append("<input type='button' value='clear' onclick='stax_$app_id.clear_dialog()'>");
+    }
+    load_dialog() {
+      var pipeline_names = [];
+      for( var i=0; i < localStorage.length; i++) {
+        pipeline_names.push(localStorage.key(i));
+      }
+      var name = prompt("Load pipeline: "+pipeline_names.join(', '), 'last_pipeline');
+      if(name == undefined) {
+        return;
+      }
+      if(localStorage.getItem(name)) {
+        this.load_pipeline(name);
+      } else {
+        alert("Could not find a saved pipeline with the name "+name);
+      }
+    }
+    save_dialog() {
+      var name = prompt("Save pipeline as...", new Date().toISOString());
+      if(name == undefined) {
+        return;
+      }
+      this.save_pipeline(name);
+      alert("Saved pipeline.")
+    }
+    clear_dialog() {
+      if(confirm("Do you want to clear the current pipeline?")) {
+        this.clear_pipeline();
+      }
+    }
+
   }
   var stax_$app_id = new Stax_$app_id();
   call_function_callback("$app_id", '{}', 'list_processors', stax_$app_id.render_processor_blocks);
+
 </script>

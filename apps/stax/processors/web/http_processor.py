@@ -4,19 +4,17 @@ from apps.stax import StaxProcessor
 
 class HttpProcessor(StaxProcessor):
     INITIALIZED = False
-    NAME = 'HTTP'
+    NAME = 'HTTP Get'
     FOLDER = 'web'
 
     PARAMETERS = []
     INPUT_TYPES = ['string']
     OUTPUT_TYPE = 'bytes_generator'
 
-    def process(self, input):
-        url = input['input']
-        if url:
+    def process(self, params, input):
+        for url in input:
             r = requests.get(url)
             for chunk in r.iter_content(chunk_size=1024):
                 print(chunk)
                 yield chunk
-        else:
             yield None

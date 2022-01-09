@@ -4,18 +4,16 @@ from apps.stax import StaxProcessor
 class HexDumpTransform(StaxProcessor):
     INITIALIZED = False
     NAME = 'Hex Dump'
-    FOLDER = 'data'
+    FOLDER = 'bytes'
 
     PARAMETERS = []
-    # input is a byte buffer
-    INPUT_TYPES = ['bytes_generator']
-    # output is str
-    OUTPUT_TYPE = 'generator'
+    INPUT_TYPES = ['bytes']
+    OUTPUT_TYPE = 'string'
 
     def process(self, input=None):
         buffer = b''
         offset = 0
-        for buf in input['input']:
+        for buf in input:
             buffer += buf
             while len(buffer) >= 16:
                 line = "%04x: %s  %s" % (offset,

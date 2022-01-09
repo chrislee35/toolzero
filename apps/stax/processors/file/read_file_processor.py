@@ -8,12 +8,13 @@ class ReadFileProcessor(StaxProcessor):
 
     PARAMETERS = []
     INPUT_TYPES = ['string']
-    OUTPUT_TYPE = 'bytes_generator'
+    OUTPUT_TYPE = 'bytes'
 
-    def process(self, input):
-        filename = input['input']
-        with open(filename, 'rb') as fh:
-            buff = fh.read(1024)
-            while buff:
-                yield buff
+    def process(self, params, input):
+        for filename in input:
+            with open(filename, 'rb') as fh:
                 buff = fh.read(1024)
+                while buff:
+                    yield buff
+                    buff = fh.read(1024)
+                yield None

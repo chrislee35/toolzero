@@ -5,7 +5,7 @@ import inspect
 class StoreVariable(StaxProcessor):
     INITIALIZED = False
     NAME = 'Store Variable'
-    FOLDER = 'data'
+    FOLDER = 'variables'
 
     PARAMETERS = [
         StaxParameter('name', 'string', 'x')
@@ -14,9 +14,9 @@ class StoreVariable(StaxProcessor):
         'bytes_generator']
     OUTPUT_TYPE = 'None'
 
-    def process(self, input):
-        value = input['input']
-        name = input['params']['name']
+    def process(self, params, input):
+        value = input
+        name = params['name']
 
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 2)

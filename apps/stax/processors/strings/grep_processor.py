@@ -5,7 +5,7 @@ import re
 class GrepProcessor(StaxProcessor):
     INITIALIZED = False
     NAME = 'Grep'
-    FOLDER = 'data'
+    FOLDER = 'strings'
 
     PARAMETERS = [
         StaxParameter('filter', 'string', 'test.ng'),
@@ -17,28 +17,28 @@ class GrepProcessor(StaxProcessor):
         StaxParameter('case insensitive match', 'boolean', True),
         StaxParameter('dotall match', 'boolean', False)
     ]
-    INPUT_TYPES = ['list', 'generator']
-    OUTPUT_TYPE = 'generator'
+    INPUT_TYPES = ['string']
+    OUTPUT_TYPE = 'string'
 
-    def process(self, input):
-        filter = input['params']['filter']
-        grep_type = input['params']['grep type']
-        inverse = input['params']['inverse']
-        only_matching = input['params']['only matching']
+    def process(self, params, input):
+        filter = params['filter']
+        grep_type = params['grep type']
+        inverse = params['inverse']
+        only_matching = params['only matching']
 
         if grep_type == 'regex':
-            rexp = re.compile(input['params']['filter'])
+            rexp = re.compile(params['filter'])
             flags = 0
-            if input['params']['unicode match']:
+            if params['unicode match']:
                 flags += re.U
-            if input['params']['multiline match']:
+            if params['multiline match']:
                 flags += re.M
-            if input['params']['case insensitive match']:
+            if params['case insensitive match']:
                 flags += re.I
-            if input['params']['dotall']:
+            if params['dotall']:
                 flags += re.DOTALL
 
-        for line in input['input']:
+        for line in input:
             if grep_type == 'regex':
                 m = rexp.search(line)
                 if not m and inverse:

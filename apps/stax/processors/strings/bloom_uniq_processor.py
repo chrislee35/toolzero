@@ -68,18 +68,18 @@ class SimpleBloomFilter:
 class BloomUniqProcessor(StaxProcessor):
     INITIALIZED = False
     NAME = 'Bloom Filter Uniq'
-    FOLDER = 'data'
+    FOLDER = 'strings'
 
     PARAMETERS = [
         StaxParameter('bloom filter size (bytes)', 'number', 64*1024)
     ]
-    INPUT_TYPES = ['list', 'generator']
-    OUTPUT_TYPE = 'generator'
+    INPUT_TYPES = ['string', 'number']
+    OUTPUT_TYPE = 'input'
 
-    def process(self, input):
-        bloom_size = input['params']['bloom filter size (bytes)']
+    def process(self, params, input):
+        bloom_size = params['bloom filter size (bytes)']
 
         filter = SimpleBloomFilter(bloom_size)
-        for item in input['input']:
-            if filter.check_and_set(item):
+        for item in input:
+            if filter.check_and_set(str(item)):
                 yield item

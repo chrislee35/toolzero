@@ -1,11 +1,13 @@
 from .stax_processor import StaxProcessor
 import types
 
+
 class StaxEngine:
     INITIALIZED = False
     PROCESSORS = {}
 
-    def __init__(self):
+    def __init__(self, parent=None):
+        self.parent = parent
         self.variables = {}
         self.pipeline = []
         if not self.INITIALIZED:
@@ -16,7 +18,8 @@ class StaxEngine:
             self.append_processor(pn)
 
     def _discover_processors(self):
-        import glob, os
+        import glob
+        import os
         for p in glob.glob('apps/stax/processors/*'):
             if not os.path.isdir(p):
                 continue
@@ -26,7 +29,6 @@ class StaxEngine:
             for kl in kls:
                 if kl[0] != kl[0].upper():
                     continue
-                #print("Loading mod.%s" % kl)
                 klass = eval("mod.%s" % kl)
                 if issubclass(klass, StaxProcessor):
                     self.PROCESSORS[klass.NAME] = klass
@@ -47,7 +49,7 @@ class StaxEngine:
         kls = self.PROCESSORS[processor_name]
         if kls is None:
             raise ArgumentError("Could not load class for processor: %s -> %s" % (processor_name, self.PROCESSORS[processor_name]))
-        instance = kls()
+        instance = kls(self)
         entry = {
             'name': processor_name,
             'proc': instance,
@@ -57,8 +59,12 @@ class StaxEngine:
         previous_processor_name = "__start__"
         previous_output_type = 'None'
         if len(self.pipeline) > 0:
-            previous_output_type = self.pipeline[-1]['proc'].OUTPUT_TYPE
             previous_processor_name = self.pipeline[-1]['name']
+            for i in range(len(self.pipeline)-1,-1,-1):
+                if self.pipeline[i]['proc'].OUTPUT_TYPE != 'input':
+                    previous_output_type = self.pipeline[i]['proc'].OUTPUT_TYPE
+                    break
+            #previous_output_type = self.pipeline[-1]['proc'].OUTPUT_TYPE
 
         valid = False
         if instance.INPUT_TYPES is None and previous_output_type is None:
@@ -74,12 +80,12 @@ class StaxEngine:
                 valid_input_types = ','.join(instance.INPUT_TYPES)
             raise ValueError("Processor %s requires input types %s, but the previous processor, %s, outputs %s" %
                 (processor_name, valid_input_types, previous_processor_name, previous_output_type))
-        self.pipeline.append( entry )
+
+        self.pipeline.append(entry)
         return entry
 
     def set_parameter(self, proc_index, parameter, value):
         entry = self.pipeline(proc_index)
-        stax_param = None
         for sp in entry['stax_params']:
             if parameter == sp.name:
                 if sp.validate(value):
@@ -113,21 +119,23 @@ class StaxEngine:
         # if the processor yields, then this is a "stream" interface, pass the generator to the
         # next processor and let it consume it
         last_output = input
+        self.pause = False
         for i, entry in enumerate(self.pipeline[start:]):
-            input = {
-                'input': last_output,
-                'params': entry['params']
-            }
-            last_output = entry['proc'].process(input)
-            #print(last_output)
-            # if generator and output type is scalar, then we are unrolling a loop
-            if type(last_output) == types.GeneratorType and entry['proc'].OUTPUT_TYPE not in ['generator', 'bytes_generator']:
-                lo = None
-                for item in last_output:
-                    lo = self.run_pipeline(start+i+1, item)
-                last_output = lo
-                break  # don't run the rest of the pipeline in this call of the function
-        return last_output
+            if self.pause:
+                return
+            last_output = entry['proc'].process(entry['params'], last_output)
+
+        yield last_output
+
+    def send_output(self, id, message):
+        if self.parent:
+            print("sending output "+message)
+            self.parent.send_output(id, message)
+        else:
+            print(message)
+
+    def pause(self):
+        self.pause = True
 
     def submit_pipeline(self, pipeline, start=0):
         self.pipeline = []
@@ -136,7 +144,9 @@ class StaxEngine:
         for block in pipeline:
             entry = self.append_processor(block['processor'])
             if len(entry['stax_params']) > 0:
+                entry['params']['id'] = block['parameters']['id']
                 for sp in entry['stax_params']:
                     entry['params'][sp.name] = block['parameters'][sp.name]
-        answer = self.run_pipeline(start)
-        yield answer
+
+        for answer in self.run_pipeline(start):
+            yield answer

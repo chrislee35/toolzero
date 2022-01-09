@@ -16,16 +16,16 @@ class ShellCommandProcessor(StaxProcessor):
     PARAMETERS = [
         StaxParameter('command', 'string', '/usr/bin/uuencode --base64')
     ]
-    INPUT_TYPES = ['generator']
-    OUTPUT_TYPE = 'generator'
+    INPUT_TYPES = ['string']
+    OUTPUT_TYPE = 'string'
 
     def enqueue_output(self, out, queue):
         for line in iter(out.readline, b''):
             queue.put(line)
         out.close()
 
-    def process(self, input):
-        cmd = shlex.split(input['params']['command'])
+    def process(self, params, input):
+        cmd = shlex.split(params['command'])
         subproc = Popen(cmd,
             bufsize=1,
             close_fds=ON_POSIX,
@@ -39,7 +39,7 @@ class ShellCommandProcessor(StaxProcessor):
         t.daemon = True
         t.start()
 
-        for item in input['input']:
+        for item in input:
             subproc.stdin.write(item)
             while True:
                 try:

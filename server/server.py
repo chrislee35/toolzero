@@ -124,10 +124,10 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             if not klass:
                 self._return_json(404, {'error': 'App not found'})
                 return
-            app = klass()
+            app = klass(self)
             active_apps[app_id] = app
             # return the interface description to be rendered with the app_instance_id
-            self._return_json(200, { 'app_id': app_id, 'fields': app.fields, 'result_type': app.result_type, 'name': app.name })
+            self._return_json(200, {'app_id': app_id, 'fields': app.fields, 'result_type': app.result_type, 'name': app.name})
         elif path.startswith('/jsapps/'):
             # generate uuid for the app instance
             app_id = uuid().hex
@@ -268,8 +268,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
                 'callback_id': callback_id,
                 'status': 'pending'
             }
-            self._return_json(200, {'status': 'success', 'app_id': '',
-                'callback_id': callback_id})
+            self._return_json(200, {'status': 'success', 'app_id': '', 'callback_id': callback_id})
         else:
             self.send_header(404)
             self.end_headers()
@@ -285,8 +284,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         app = active_apps[app_id]
         # check if the app responds to the function
         if not hasattr(app, function):
-            return self._return_json(404, {'status': 'error',
-                'error': 'function does not exist'})
+            return self._return_json(404, {'status': 'error', 'error': 'function does not exist'})
 
         # serialize the post data as parameters
         content_len = int(self.headers.get('content-length', 0))
@@ -371,8 +369,7 @@ context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 context.load_cert_chain('keys/cert.pem', 'keys/key.pem')
 context.verify_mode = ssl.CERT_NONE
 httpd = ThreadingServer(('localhost', 4443), SimpleHTTPRequestHandler)
-httpd.socket = context.wrap_socket(httpd.socket, server_side=True,
-    do_handshake_on_connect=False)
+httpd.socket = context.wrap_socket(httpd.socket, server_side=True, do_handshake_on_connect=False)
 
 print("https://127.0.0.1:4443/?token="+token)
 httpd.serve_forever()

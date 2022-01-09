@@ -6,7 +6,7 @@ import math
 class MathFormulaProcessor(StaxProcessor):
     INITIALIZED = False
     NAME = 'Math Formula'
-    FOLDER = 'custom'
+    FOLDER = 'math'
 
     PARAMETERS = [
         StaxParameter('code', 'textbox', 'x + pi')
@@ -27,13 +27,13 @@ class MathFormulaProcessor(StaxProcessor):
             # creating a dictionary of safe methods
             self.SAFE_DICT = dict([(k, getattr(math, k)) for k in safe_list])
 
-    def process(self, input):
-        code = input['params']['code']
+    def process(self, params, input):
+        code = params['code']
         block = ast.parse(code, mode='exec')
         last = ast.Expression(block.body.pop().value)
 
-        item = input['input']
-        _globals, _locals = {}, {'x': item}
-        _locals.update(self.SAFE_DICT)
-        exec(compile(block, '<string>', mode='exec'), _globals, _locals)
-        return eval(compile(last, '<string>', mode='eval'), _globals, _locals)
+        for item in input:
+            _globals, _locals = {}, {'x': item}
+            _locals.update(self.SAFE_DICT)
+            exec(compile(block, '<string>', mode='exec'), _globals, _locals)
+            yield eval(compile(last, '<string>', mode='eval'), _globals, _locals)
