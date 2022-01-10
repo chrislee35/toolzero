@@ -14,7 +14,7 @@ class ShellCommandProcessor(StaxProcessor):
     FOLDER = 'custom'
 
     PARAMETERS = [
-        StaxParameter('command', 'string', '/usr/bin/uuencode --base64')
+        StaxParameter('command', 'string', '/usr/bin/uuencode --base64 -')
     ]
     INPUT_TYPES = ['string']
     OUTPUT_TYPE = 'string'

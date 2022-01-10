@@ -26,8 +26,10 @@ class WriteFileProcessor(StaxProcessor):
             else:
                 if type(buffer) == dict:
                     json.dump(buffer, tmpfile, indent=2)
-                elif type(buffer) in [str, bytes]:
+                elif type(buffer) == str:
                     tmpfile.write(buffer.encode(params['encoding']))
+                elif type(buffer) == bytes:
+                    tmpfile.write(buffer)
                 elif type(buffer) == list:
                     tmpfile.write(
                         params['list join character'].join(

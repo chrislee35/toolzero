@@ -8,11 +8,11 @@ class CustomCodeProcessor(StaxProcessor):
     FOLDER = 'custom'
 
     PARAMETERS = [
-        ComboboxParameter('output type', ['string', 'numeric', 'dict'], 'string'),
         StaxParameter('code', 'textbox', 'x = \'hello \'+item\nx + x')
     ]
-    INPUT_TYPES = ['string', 'numeric', 'dict']
+    INPUT_TYPES = ['string', 'numeric', 'dict', 'list(string)', 'list(numeric)', 'list(dict)', 'bytes']
     OUTPUT_TYPE = 'select'
+    OUTPUT_TYPES = ['string', 'numeric', 'dict', 'list(string)', 'list(numeric)', 'list(dict)', 'bytes']
 
     def process(self, params, input):
         code = params['code']

@@ -1,4 +1,4 @@
-from apps.stax import StaxProcessor, StaxParameter
+from apps.stax import StaxProcessor, StaxParameter, StaxStore
 import inspect
 
 
@@ -10,15 +10,10 @@ class StoreVariable(StaxProcessor):
     PARAMETERS = [
         StaxParameter('name', 'string', 'x')
     ]
-    INPUT_TYPES = ['list', 'string', 'numeric', 'dict', 'generator',
-        'bytes_generator']
+    INPUT_TYPES = ['list(string)', 'list(numeric)', 'list(dict)', 'string', 'numeric', 'dict', 'bytes']
     OUTPUT_TYPE = 'None'
 
     def process(self, params, input):
-        value = input
         name = params['name']
-
-        curframe = inspect.currentframe()
-        calframe = inspect.getouterframes(curframe, 2)
-        calframe[1].frame.f_locals['self'].set_variable(name, value)
+        StaxStore.set(name, input)
         return None

@@ -8,11 +8,11 @@ class ExtractProcessor(StaxProcessor):
     FOLDER = 'datastructures'
 
     PARAMETERS = [
-        ComboboxParameter('output type', ['numeric', 'string', 'dict'], 'string'),
         StaxParameter('field', 'string', 'name')
     ]
     INPUT_TYPES = ['list(numeric)', 'list(string)', 'dict']
     OUTPUT_TYPE = 'rule'
+    OUTPUT_TYPES = ['numeric', 'string', 'dict']
 
     def process(self, params, input):
         field = params['field']

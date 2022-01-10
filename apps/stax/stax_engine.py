@@ -1,4 +1,5 @@
 from .stax_processor import StaxProcessor
+from .stax_store import StaxStore
 import types
 
 
@@ -8,7 +9,6 @@ class StaxEngine:
 
     def __init__(self, parent=None):
         self.parent = parent
-        self.variables = {}
         self.pipeline = []
         if not self.INITIALIZED:
             self._discover_processors()
@@ -96,7 +96,7 @@ class StaxEngine:
         return False
 
     def set_variable(self, name, value):
-        self.variables[name] = value
+        StaxStore.set(name, value)
 
     def cli_set_parameters(self):
         for entry in self.pipeline:
@@ -125,14 +125,14 @@ class StaxEngine:
                 return
             last_output = entry['proc'].process(entry['params'], last_output)
 
-        yield last_output
+        return last_output
 
     def send_output(self, id, message):
         if self.parent:
             print("sending output "+message)
             self.parent.send_output(id, message)
         else:
-            print(message)
+            print("CLI "+message)
 
     def pause(self):
         self.pause = True
@@ -140,13 +140,16 @@ class StaxEngine:
     def submit_pipeline(self, pipeline, start=0):
         self.pipeline = []
         if start == 0:
-            self.variables = {}
+            StaxStore.clear()
         for block in pipeline:
             entry = self.append_processor(block['processor'])
-            if len(entry['stax_params']) > 0:
-                entry['params']['id'] = block['parameters']['id']
-                for sp in entry['stax_params']:
+            if block.get('parameters') is None:
+                block['parameters'] = {}
+            entry['params']['id'] = block['parameters'].get('id', 'cli')
+            for sp in entry['stax_params']:
+                if block['parameters'].get(sp.name):
                     entry['params'][sp.name] = block['parameters'][sp.name]
+                else:
+                    entry['params'][sp.name] = sp.default
 
-        for answer in self.run_pipeline(start):
-            yield answer
+        return self.run_pipeline(start)

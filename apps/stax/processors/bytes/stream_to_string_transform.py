@@ -15,4 +15,5 @@ class StreamToStringTransform(StaxProcessor):
     def process(self, params, input):
         encoding = params['encoding']
         for item in input:
-            yield str(item.decode(encoding))
+            if item:
+                yield str(item.decode(encoding))

@@ -12,6 +12,6 @@ class InputStr(StaxProcessor):
     INPUT_TYPES = ['None']
     OUTPUT_TYPE = 'string'
 
-    def process(self, params, input=None):
+    def process(self, params, input):
         val = params['string']
         yield val

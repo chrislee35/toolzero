@@ -12,14 +12,15 @@ class TemplateTransform(StaxProcessor):
     INPUT_TYPES = ['string', 'numeric', 'dict', 'list(string)', 'list(numeric)']
     OUTPUT_TYPE = 'string'
 
-    def process(self, input=None):
+    def process(self, params, input):
         template = params['template']
-        if not template:
-            val = input
-        elif type(input) == dict:
-            val = template.format(**input)
-        elif type(input) == list:
-            val = template.format(*input)
-        else:
-            val = template.format(input)
-        return val
+        for item in input:
+            if not template:
+                val = item
+            elif type(item) == dict:
+                val = template.format(**item)
+            elif type(item) == list:
+                val = template.format(*item)
+            else:
+                val = template.format(item)
+            yield val

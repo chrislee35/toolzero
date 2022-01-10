@@ -1,4 +1,4 @@
-from apps.stax import StaxProcessor, StaxParameter, ComboboxParameter
+from apps.stax import StaxProcessor, StaxParameter, ComboboxParameter, StaxStore
 import inspect
 
 
@@ -8,14 +8,16 @@ class LoadVariable(StaxProcessor):
     FOLDER = 'variables'
 
     PARAMETERS = [
-        ComboboxParameter('Variable Type', ['string', 'numeric', 'dict', 'list(string)', 'list(numeric)', 'bytes']),
         StaxParameter('Variable', 'string', 'x')
     ]
     INPUT_TYPES = ['None']
     OUTPUT_TYPE = 'select'
+    OUTPUT_TYPES = ['string', 'numeric', 'dict', 'list(string)', 'list(numeric)', 'bytes']
 
     def process(self, params, input):
-        variable = params['Variable']
-        curframe = inspect.currentframe()
-        calframe = inspect.getouterframes(curframe, 2)
-        return calframe[1].frame.f_locals['self'].variables[variable]
+        name = params['Variable']
+        val = StaxStore.get(name)
+        if val is None:
+            yield None
+        else:
+            return val

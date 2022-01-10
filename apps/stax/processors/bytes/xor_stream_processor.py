@@ -17,6 +17,8 @@ class XorStreamProcessor(StaxProcessor):
     def process(self, params, input):
         generator = input
         for buffer in generator:
+            if buffer is None:
+                continue
             xor = bytes.fromhex(params['xor'].replace('0x', ''))
             xor_buffer = bytes([xor[0] ^ c for c in buffer])
             yield xor_buffer
