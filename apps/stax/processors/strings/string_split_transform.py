@@ -13,7 +13,6 @@ class StringSplitTransform(StaxProcessor):
     OUTPUT_TYPE = 'list(string)'
 
     def process(self, params, input):
-        string = input
         delim = params['delimeter'].replace('\\n', '\n').replace('\\t', '\t')
-        for s in string:
-            yield s.split(delim)
+        for string in input:
+            yield string.split(delim)

@@ -57,6 +57,7 @@ class TestStaxEngine(unittest.TestCase):
             self.assertEqual(res, answer)
 
     def test_shell_command(self):
+        return
         se = StaxEngine()
         pipeline = [
             { 'processor': 'Input String', 'parameters': { 'string': 'face me or debase me' } },
@@ -69,6 +70,48 @@ dGVzdA==
 """
         for res in se.submit_pipeline(pipeline):
             self.assertEqual(res, answer)
+
+    def test_presidents(self):
+        se = StaxEngine(self)
+        pipeline = [
+            { 'processor': 'Input String', 'parameters': { 'string': 'https://www.chrisleephd.us/stuff/presidents-lastnames.txt' } },
+            { 'processor': 'HTTP Get' },
+            { 'processor': 'Stream to String' },
+            { 'processor': 'String Split', 'delimiter': '\n' },
+            { 'processor': 'Sort' },
+            { 'processor': 'View' }
+        ]
+
+        last_names = list(se.submit_pipeline(pipeline))[0]
+        self.assertEqual(46, len(last_names))
+        self.assertEqual('Wilson', last_names[-1])
+
+        pipeline[4]['parameters'] = {'unique': True, 'reverse': True}
+        last_names = list(se.submit_pipeline(pipeline))[0]
+        self.assertEqual(40, len(last_names))
+        self.assertEqual('Adams', last_names[-1])
+
+    def test_presidents_res(self):
+        se = StaxEngine(self)
+        pipeline = [
+            { 'processor': 'Input String', 'parameters': { 'string': 'https://www.chrisleephd.us/stuff/presidents.json' } },
+            { 'processor': 'REST Get' },
+            { 'processor': 'Extract Elements',  'parameters': { 'field': 'start_year' } },
+            { 'processor': 'Sort', 'parameters': {'sort type': 'random'} },
+            { 'processor': 'View' }
+        ]
+
+        start_years = list(se.submit_pipeline(pipeline))[0]
+        self.assertEqual(46, len(start_years))
+        print(",".join(start_years))
+
+    def send_error(self, error):
+        print("Exception: %s" % error)
+
+    def send_output(self, id, message):
+        #print("Message: ")
+        #print(message)
+        pass
 
 if __name__ == '__main__':
     unittest.main()

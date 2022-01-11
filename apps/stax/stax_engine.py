@@ -25,7 +25,7 @@ class StaxEngine:
                 continue
             name = p.replace('/', '.')
             mod = __import__(name, fromlist=[''])
-            kls = [x for x in dir(mod) if not '_' in x and not x == 'StaxProcessor']
+            kls = [x for x in dir(mod) if '_' not in x and not x == 'StaxProcessor']
             for kl in kls:
                 if kl[0] != kl[0].upper():
                     continue
@@ -33,22 +33,12 @@ class StaxEngine:
                 if issubclass(klass, StaxProcessor):
                     self.PROCESSORS[klass.NAME] = klass
 
-    def list_processors_with_input(self, input_type):
-        matching_processors = []
-        for proc_name in self.PROCESSORS.keys():
-            in_types = self.PROCESSORS[proc_name].INPUT_TYPES
-            if input_type is None and in_types is None:
-                matching_processors.append(proc_name)
-            elif in_types is not None and input_type in in_types:
-                matching_processors.append(proc_name)
-        return matching_processors
-
     def append_processor(self, processor_name):
         if not self.PROCESSORS.get(processor_name):
             raise ValueError("Could not find processor with name: %s" % processor_name)
         kls = self.PROCESSORS[processor_name]
         if kls is None:
-            raise ArgumentError("Could not load class for processor: %s -> %s" % (processor_name, self.PROCESSORS[processor_name]))
+            raise Exception("Could not load class for processor: %s -> %s" % (processor_name, self.PROCESSORS[processor_name]))
         instance = kls(self)
         entry = {
             'name': processor_name,
@@ -56,31 +46,13 @@ class StaxEngine:
             'stax_params': instance.get_parameters(),
             'params': {}
         }
-        previous_processor_name = "__start__"
         previous_output_type = 'None'
         if len(self.pipeline) > 0:
-            previous_processor_name = self.pipeline[-1]['name']
-            for i in range(len(self.pipeline)-1,-1,-1):
-                if self.pipeline[i]['proc'].OUTPUT_TYPE != 'input':
-                    previous_output_type = self.pipeline[i]['proc'].OUTPUT_TYPE
-                    break
-            #previous_output_type = self.pipeline[-1]['proc'].OUTPUT_TYPE
+            previous_output_type = self.pipeline[-1]['proc'].get_output_type()
 
-        valid = False
-        if instance.INPUT_TYPES is None and previous_output_type is None:
-            valid = True
-        elif instance.INPUT_TYPES is None:
-            valid = False
-        elif previous_output_type in instance.INPUT_TYPES:
-            valid = True
-
-        if not valid:
-            valid_input_types = 'None'
-            if instance.INPUT_TYPES:
-                valid_input_types = ','.join(instance.INPUT_TYPES)
-            raise ValueError("Processor %s requires input types %s, but the previous processor, %s, outputs %s" %
-                (processor_name, valid_input_types, previous_processor_name, previous_output_type))
-
+        # set input type may also throw an exception if the input to the instance
+        # is incompatible with the processor
+        instance.set_input_type(previous_output_type)
         self.pipeline.append(entry)
         return entry
 
@@ -129,7 +101,6 @@ class StaxEngine:
 
     def send_output(self, id, message):
         if self.parent:
-            print("sending output "+message)
             self.parent.send_output(id, message)
         else:
             print("CLI "+message)
@@ -141,15 +112,18 @@ class StaxEngine:
         self.pipeline = []
         if start == 0:
             StaxStore.clear()
-        for block in pipeline:
-            entry = self.append_processor(block['processor'])
-            if block.get('parameters') is None:
-                block['parameters'] = {}
-            entry['params']['id'] = block['parameters'].get('id', 'cli')
-            for sp in entry['stax_params']:
-                if block['parameters'].get(sp.name):
-                    entry['params'][sp.name] = block['parameters'][sp.name]
-                else:
-                    entry['params'][sp.name] = sp.default
+        try:
+            for block in pipeline:
+                entry = self.append_processor(block['processor'])
+                if block.get('parameters') is None:
+                    block['parameters'] = {}
+                entry['params']['id'] = block['parameters'].get('id', 'cli')
+                for sp in entry['stax_params']:
+                    if block['parameters'].get(sp.name):
+                        entry['params'][sp.name] = block['parameters'][sp.name]
+                    else:
+                        entry['params'][sp.name] = sp.default
 
-        return self.run_pipeline(start)
+            return self.run_pipeline(start)
+        except Exception as e:
+            self.parent.send_error(str(e))

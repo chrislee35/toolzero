@@ -13,7 +13,7 @@ class SortProcessor(StaxProcessor):
         StaxParameter('reverse', 'boolean', False),
         StaxParameter('unique', 'boolean', False)
     ]
-    INPUT_TYPES = ['string', 'numeric']
+    INPUT_TYPES = ['list(string)', 'list(numeric)']
     OUTPUT_TYPE = 'input'
 
     def process(self, params, input):
@@ -21,22 +21,15 @@ class SortProcessor(StaxProcessor):
         reverse = params['reverse']
         unique = params['unique']
 
-        if type(input) != list:
-            input = list(input)
-
-        if unique:
-            input = list(set(input))
-
-        if sort_type == 'numeric':
-            for item in sorted(input, key=SortProcessor.numeric_sort,
-                reverse=reverse):
-                yield item
-        elif sort_type == 'random':
-            for item in random.sample(input, len(input)):
-                yield item
-        else:
-            for item in sorted(input, reverse=reverse):
-                yield item
+        for input_list in input:
+            if unique:
+                input_list = list(set(input_list))
+            if sort_type == 'numeric':
+                yield sorted(input_list, key=SortProcessor.numeric_sort, reverse=reverse)
+            elif sort_type == 'random':
+                yield random.sample(input_list, len(input_list))
+            else:
+                yield sorted(input_list, reverse=reverse)
 
     @staticmethod
     def numeric_sort(x):

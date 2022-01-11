@@ -9,12 +9,11 @@ class HttpProcessor(StaxProcessor):
 
     PARAMETERS = []
     INPUT_TYPES = ['string']
-    OUTPUT_TYPE = 'bytes_generator'
+    OUTPUT_TYPE = 'bytes'
 
     def process(self, params, input):
         for url in input:
             r = requests.get(url)
             for chunk in r.iter_content(chunk_size=1024):
-                print(chunk)
                 yield chunk
             yield None

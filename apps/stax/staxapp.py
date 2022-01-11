@@ -50,3 +50,18 @@ class StaxApp(BaseTool):
     def send_output(self, id, message):
         item = {'type': 'output', 'id': id, 'message': message}
         self.queue.put(item)
+
+    def send_error(self, message):
+        item = {'type': 'error', 'message': message}
+        self.queue.put(item)
+
+    def calculate_processor_output(self, **kwargs):
+        input_type = kwargs.get('input_type', 'None')
+        processor_name = kwargs.get('processor_name', 'Input String')
+        if not self.engine.PROCESSORS.get(processor_name):
+            raise ValueError("Could not find processor with name: %s" % processor_name)
+        kls = self.engine.PROCESSORS[processor_name]
+        if kls is None:
+            raise Exception("Could not load class for processor: %s -> %s" % (processor_name, self.PROCESSORS[processor_name]))
+        instance = kls(self.engine)
+        yield self.success(instance.set_input_type(input_type))
