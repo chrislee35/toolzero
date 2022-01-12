@@ -10,7 +10,7 @@ class ExtractProcessor(StaxProcessor):
     PARAMETERS = [
         StaxParameter('field', 'string', 'name')
     ]
-    INPUT_TYPES = ['list(numeric)', 'list(string)', 'dict']
+    INPUT_TYPES = ['list(numeric)', 'list(string)', 'list(dict)', 'dict']
     OUTPUT_TYPE = 'rule'
     OUTPUT_TYPES = ['numeric', 'string', 'dict']
 
@@ -20,7 +20,11 @@ class ExtractProcessor(StaxProcessor):
             if type(item) == dict:
                 yield item.get(field)
             elif type(item) == list:
-                yield item[int(field)]
+                if self.input_type == 'list(dict)':
+                    for thingy in item:
+                        yield thingy[field]
+                else:
+                    yield item[int(field)]
             else:
                 yield None
 
@@ -29,5 +33,5 @@ class ExtractProcessor(StaxProcessor):
             return 'numeric'
         elif input_type == 'list(string)':
             return 'string'
-        elif input_type == 'dict':
+        elif input_type in ['dict', 'list(dict)']:
             return 'select'

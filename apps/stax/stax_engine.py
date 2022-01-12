@@ -33,7 +33,7 @@ class StaxEngine:
                 if issubclass(klass, StaxProcessor):
                     self.PROCESSORS[klass.NAME] = klass
 
-    def append_processor(self, processor_name):
+    def append_processor(self, processor_name, output_type):
         if not self.PROCESSORS.get(processor_name):
             raise ValueError("Could not find processor with name: %s" % processor_name)
         kls = self.PROCESSORS[processor_name]
@@ -53,6 +53,8 @@ class StaxEngine:
         # set input type may also throw an exception if the input to the instance
         # is incompatible with the processor
         instance.set_input_type(previous_output_type)
+        if output_type:
+            instance.set_output_type(output_type)
         self.pipeline.append(entry)
         return entry
 
@@ -114,7 +116,7 @@ class StaxEngine:
             StaxStore.clear()
         try:
             for block in pipeline:
-                entry = self.append_processor(block['processor'])
+                entry = self.append_processor(block['processor'], block.get('output'))
                 if block.get('parameters') is None:
                     block['parameters'] = {}
                 entry['params']['id'] = block['parameters'].get('id', 'cli')

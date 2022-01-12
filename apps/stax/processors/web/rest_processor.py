@@ -9,7 +9,8 @@ class RestProcessor(StaxProcessor):
 
     PARAMETERS = []
     INPUT_TYPES = ['string']
-    OUTPUT_TYPE = 'dict'
+    OUTPUT_TYPE = 'select'
+    OUTPUT_TYPES = ['list(numeric)', 'list(string)', 'list(dict)', 'dict', 'string', 'numeric']
 
     def process(self, params, input):
         for url in input:

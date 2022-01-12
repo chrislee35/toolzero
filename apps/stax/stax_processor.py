@@ -32,6 +32,12 @@ class StaxProcessor:
     def get_output_type(self):
         return self.output_type
 
+    def set_output_type(self, output_type):
+        if self.output_type == 'select' and output_type in self.OUTPUT_TYPES:
+            self.output_type = output_type
+            return True
+        return False
+
     def set_input_type(self, input_type):
         valid = input_type in self.get_valid_input_types()
         if not valid:
