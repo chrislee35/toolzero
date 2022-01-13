@@ -32,6 +32,20 @@ class StaxProcessor:
     def get_output_type(self):
         return self.output_type
 
+    def get_selectable_output_types(self, input_type):
+        if self.OUTPUT_TYPE == "input":
+            return [input_type]
+        elif self.OUTPUT_TYPE == "rule":
+            output_type = self.determine_output(input_type)
+            if output_type == 'select':
+                return self.OUTPUT_TYPES
+            else:
+                return [output_type]
+        elif self.OUTPUT_TYPE != "select":
+            return [self.OUTPUT_TYPE]
+        else:
+            return self.OUTPUT_TYPES
+
     def set_output_type(self, output_type):
         if self.output_type == 'select' and output_type in self.OUTPUT_TYPES:
             self.output_type = output_type

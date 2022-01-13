@@ -18,8 +18,8 @@ class Stax_$app_id {
   render_processor(proc) {
     var name = proc['name'];
     var folder_class = 'folder_'+proc['folder'];
-    var output_type = proc['output'];
     var params = proc['parameters'];
+    var output_type = proc['output'];
     // render parameters
     var param_form = "";
     if(params.length > 0) {
@@ -76,10 +76,6 @@ class Stax_$app_id {
     $('#pipeline_$app_id').append(
       "<div class='processor_output_type "+output_type+"'>"+output_type+"</div>"
     );
-    if(output_type != 'input') {
-      this.last_output = output_type;
-      this.activate_valid_blocks();
-    }
   }
   activate_valid_blocks() {
     var self = this;
@@ -111,16 +107,62 @@ class Stax_$app_id {
       params.push(Object.assign({}, proc['parameters'][i]));
     }
     proc['parameters'] = params;
-    console.log(proc['parameters']);
-    console.log(parameters);
 
     // check if the last output is compatible.
     if(proc['inputs'].indexOf(this.last_output) == -1) {
-      alert("Last output type was "+this.last_output+". "+name+" takes in one of "+input_types.join(", ") );
-    } else {
-      this.render_processor(proc);
-      this.pipeline.push(proc);
+      console.log(proc);
+      alert("Last output type was "+this.last_output+". "+name+" takes in one of "+proc['inputs'].join(", ") );
+      return
     }
+
+    // check for dynamic output type and then set output_type
+    if(proc['output'] == 'input') {
+      proc['output'] = this.last_output;
+    } else if (proc['output'] == 'rule') {
+      this.resolve_processor_output_rule(name, proc);
+      return;
+    } else if (proc['output'] == 'select') {
+      this.resolve_processor_output_rule(name, proc);
+      return;
+    }
+    this.register_proc(proc);
+  }
+  resolve_processor_output_rule(name, proc) {
+    var form_data = JSON.stringify({ "processor_name": name, "input_type": this.last_output });
+    var p = call_function_promise("$app_id", form_data, 'calculate_processor_output');
+    p.then((output_type) => {
+      if(output_type == 'select') {
+        this.resolve_processor_output_selection(name, proc);
+        return;
+      }
+      proc['output'] = output_type;
+      this.register_proc(proc);
+    }).catch((error) => {
+      console.log(error);
+    });
+  }
+  resolve_processor_output_selection(name, proc) {
+    var form_data = JSON.stringify({ "processor_name": name, "input_type": this.last_output });
+    var p = call_function_promise("$app_id", form_data, 'calculate_selectable_outputs');
+    p.then((selectable_output_types) => {
+      this.show_output_type_selection_dialog(name, proc, selectable_output_types)
+    }).catch((error) => {
+      console.log(error);
+    });
+  }
+  register_proc(proc) {
+    this.render_processor(proc);
+    this.pipeline.push(proc);
+    this.last_output = proc['output'];
+    this.activate_valid_blocks();
+  }
+  show_output_type_selection_dialog(name, proc, selectable_output_types) {
+    var output_type = 'asdfasdfasdf';
+    while(selectable_output_types.indexOf(output_type) == -1) {
+      output_type = prompt("Select an output type for "+name+":\n"+selectable_output_types.join(', '));
+    }
+    proc['output'] = output_type;
+    this.register_proc(proc);
   }
   remove_block_from_pipeline() {
     var self = stax_$app_id;
@@ -131,12 +173,12 @@ class Stax_$app_id {
     self.pipeline.pop();
     var ele = $(".processor_instance[data-proc-id="+proc_id+"]");
     // need to update the last output type
-    console.log(ele.prev());
+    // console.log(ele.prev());
     self.last_output = ele.prev().text();
     if(self.last_output == undefined) {
       self.last_output = 'None';
     }
-    console.log(self.last_output);
+    // console.log(self.last_output);
     ele.next().remove();
     ele.remove();
     self.activate_valid_blocks();
@@ -176,7 +218,7 @@ class Stax_$app_id {
         params['id'] = input_id;
         params[input_name] = input_value;
       }
-      pipeline.push( { 'processor': processor_name, 'parameters': params } );
+      pipeline.push( { 'processor': processor_name, 'parameters': params, 'output': block['output'] } );
     }
     return { pipeline: pipeline, submit_time: Date.now(), start: start };
   }

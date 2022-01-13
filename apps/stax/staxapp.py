@@ -55,13 +55,24 @@ class StaxApp(BaseTool):
         item = {'type': 'error', 'message': message}
         self.queue.put(item)
 
-    def calculate_processor_output(self, **kwargs):
-        input_type = kwargs.get('input_type', 'None')
-        processor_name = kwargs.get('processor_name', 'Input String')
+    def calculate_processor_output(self, processor_name, input_type, **kwargs):
         if not self.engine.PROCESSORS.get(processor_name):
             raise ValueError("Could not find processor with name: %s" % processor_name)
         kls = self.engine.PROCESSORS[processor_name]
         if kls is None:
             raise Exception("Could not load class for processor: %s -> %s" % (processor_name, self.PROCESSORS[processor_name]))
         instance = kls(self.engine)
-        yield self.success(instance.set_input_type(input_type))
+        output_type = instance.set_input_type(input_type)
+        #print("calculate_processor_output:%s(%s) => %s" % (processor_name, input_type, output_type))
+        yield self.success(output_type)
+
+    def calculate_selectable_outputs(self, processor_name, input_type, **kwargs):
+        if not self.engine.PROCESSORS.get(processor_name):
+            raise ValueError("Could not find processor with name: %s" % processor_name)
+        kls = self.engine.PROCESSORS[processor_name]
+        if kls is None:
+            raise Exception("Could not load class for processor: %s -> %s" % (processor_name, self.PROCESSORS[processor_name]))
+        instance = kls(self.engine)
+        output_types = instance.get_selectable_output_types(input_type)
+        print("calculate_selectable_outputs:%s(%s) => %s" % (processor_name, input_type, ",".join(output_types)))
+        yield self.success(output_types)
