@@ -1,0 +1,98 @@
+#app_$app_id {
+  display: grid;
+  grid-column-gap: 15px;
+  grid: 100vh / 250px auto;
+  height: 100vh;
+}
+#processor_list_$app_id {
+  grid-column: 1;
+  grid-row: 1;
+  width: 250px;
+  height: 100vh;
+  overflow-y: auto;
+}
+#pipeline_$app_id {
+  grid-column: 2;
+  grid-row: 1;
+  overflow-y: auto;
+}
+#remove_last_div {
+  position: absolute;
+  bottom: 10px;
+  right: 28px;
+}
+#remove_last_div::before {
+  font-family: arial;
+  font-size: 28px;
+  content: '\2715';
+  color: red;
+}
+.processor_block {
+  width: 220px;
+  margin: 5px;
+  padding: 5px;
+  border-radius: 15px;
+  color: darkblue;
+  font-weight: bold;
+}
+.playable::before {
+  font-family: 'Webdings';
+  font-size: 28px;
+  content: '\25B6';
+  top: 0px;
+  left: 12px;
+  padding-right: 4px;
+  color: green;
+}
+.processor_instance {
+  margin: 10px;
+  border-radius: 25px;
+  padding-left: 25px;
+  padding-right: 25px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  color: black;
+}
+.proc_inst_name {
+  font-size: 14pt;
+  font-weight: bold;
+  font-variant: small-caps;
+  color: #0f494f;
+}
+
+.folder_bytes          { background-color: #888; }
+.folder_custom         { background-color: #999; }
+.folder_datastructures { background-color: #f9f; }
+.folder_file           { background-color: #99f; }
+.folder_flow           { background-color: #ff9; }
+.folder_interact       { background-color: #9f9; }
+.folder_math           { background-color: #9ff; }
+.folder_strings        { background-color: #ccc; }
+.folder_variables      { background-color: #f99; }
+.folder_web            { background-color: #fcc; }
+
+.disabled {
+  background-color: #666;
+  color: #999;
+  border: thin solid #633;
+  display: none;
+}
+.processor_output_type {
+  font-variant: all-caps;
+  padding-left: 50px;
+}
+.processor_output_type::before {
+  content: "=> ";
+}
+.numeric {
+  color: black;
+}
+.string {
+  color: green;
+}
+.list {
+  color: darkyellow;
+}
+.bytestream {
+  color: purple;
+}

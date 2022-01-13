@@ -68,11 +68,18 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
             return
         content_type = guess_type(filename)[0]
+        buf = open(filename, 'rb').read()
+        self._return_buffer(buf, content_type)
+
+    def _return_buffer(self, buffer, content_type):
         global token_cookie_string
         self.send_response(200)
         self.send_header('Set-Cookie', token_cookie_string)
         self.send_header('Content-type', content_type)
-        buf = open(filename, 'rb').read()
+        if type(buffer) == str:
+            buf = buffer.encode('UTF-8')
+        else:
+            buf = buffer
         self.send_header('Content-length', len(buf))
         self.end_headers()
         self.wfile.write(buf)
@@ -133,7 +140,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             app_id = uuid().hex
             # load the page for the app
             app_name = path.split('/')[-1]
-            page_filename = 'apps/'+app_name+'/index.html'
+            page_filename = 'apps/'+app_name+'/html/index.html'
             if not os.path.exists(page_filename):
                 self._return_json(404, {'error': 'App not found'})
                 return
@@ -146,7 +153,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             app_id = uuid().hex
             # load the page for the app
             app_name = path.split('/')[-1]
-            page_filename = 'apps/'+app_name+'/index.html'
+            page_filename = 'apps/'+app_name+'/html/index.html'
             if not os.path.exists(page_filename):
                 self._return_json(404, {'error': 'App not found'})
                 return
@@ -162,6 +169,22 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 
             # return the page in the data structure
             self._return_json(200, {'app_id': app_id, 'page': page, 'name': app_name})
+        elif path.startswith('/app_html/'):
+            if '..' in path:
+                self._return_forbidden()
+                return
+            _, _, app_name, app_id, resource_name = path.split('/', 4)
+            if not active_apps[app_id]:
+                self._return_json(404, {'error': 'App id not active'})
+                return
+            page_filename = 'apps/'+app_name+'/html/'+resource_name
+            if not os.path.exists(page_filename):
+                self._return_json(404, {'error': 'App not found'})
+                return
+            # read the page and replace $app_id
+            page = open(page_filename, 'r').read().replace('$app_id', app_id)
+            content_type = guess_type(page_filename)[0]
+            self._return_buffer(page.encode('UTF-8'), content_type)
         else:
             self._return_file('html/doesnotexist.html')
 
