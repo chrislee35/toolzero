@@ -10,6 +10,6 @@ class Pause(StaxProcessor):
     INPUT_TYPES = ['None', 'string', 'numeric', 'dict', 'list(string)', 'list(numeric)', 'list(dict)', 'bytes']
     OUTPUT_TYPE = 'input'
 
-    def process(self, input=None):
+    def process(self, params, input=None):
         self.pause()
         return input

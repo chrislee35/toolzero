@@ -127,11 +127,17 @@ function open_app_tab(app_id, name, fields, result_type) {
   // add the div to the tab
   f.appendChild(t);
   d.appendChild(f);
-  var r = document.createElement('textarea');
-  r.setAttribute('rows', 10);
-  r.setAttribute('cols', 40);
-  r.setAttribute('id', 'res_'+app_id);
-  d.appendChild(r);
+  if(result_type['type'] == 'textarea') {
+    var r = document.createElement('textarea');
+    r.setAttribute('rows', 10);
+    r.setAttribute('cols', 40);
+    r.setAttribute('id', 'res_'+app_id);
+    d.appendChild(r);
+  } else if (result_type['type'] == 'table') {
+    var r = document.createElement('table');
+    r.setAttribute('id', 'res_'+app_id);
+    d.appendChild(r);
+  }
   $("#app_tabs").append(d);
   // add the tab
   var li = document.createElement('li');
@@ -165,15 +171,15 @@ function render_field_row(field, app_id) {
     if(field['type'] == 'button') {
       field_td.appendChild(render_button(field, app_id));
     } else if(field['type'] == 'text') {
-      field_td.appendChild(render_text_field(field));
+      field_td.appendChild(render_text_field(field, app_id));
     } else if (field['type'] == 'password') {
-      field_td.appendChild(render_password_field(field));
+      field_td.appendChild(render_password_field(field, app_id));
     } else if (field['type'] == 'list') {
-      field_td.appendChild(render_list_field(field));
+      field_td.appendChild(render_list_field(field, app_id));
     } else if (field['type'] == 'radio') {
-      field_td.appendChild(render_radio_field(field));
+      field_td.appendChild(render_radio_field(field, app_id));
     } else if (field['type'] == 'checkbox') {
-      field_td.appendChild(render_checkbox_field(field));
+      field_td.appendChild(render_checkbox_field(field, app_id));
     }
   }
 
@@ -211,16 +217,22 @@ function render_button(field, app_id) {
   return o;
 }
 
-function render_text_field(field) {
+function render_text_field(field, app_id) {
     var o = document.createElement('input');
     o.setAttribute('type', 'text');
     o.setAttribute('length', field['length'] || 20);
     o.setAttribute('name', field['key'] || 'no_name');
     o.setAttribute('value', field['default'] || '');
+    if(field['onchange']) {
+      o.onchange = (event) => {
+        var form_data = form_to_json(document.forms[app_id]);
+        call_function(app_id, form_data, field['onchange']);
+      }
+    }
     return o;
 }
 
-function render_password_field(field) {
+function render_password_field(field, app_id) {
     var o = document.createElement('input');
     o.setAttribute('type', 'password');
     o.setAttribute('length', field['length'] || 20);
@@ -229,7 +241,7 @@ function render_password_field(field) {
     return o;
 }
 
-function render_list_field(field) {
+function render_list_field(field, app_id) {
     var o = document.createElement('select');
     o.name = field['key'] || 'no_name';
     $.each(field['values'], function(i, item) {
@@ -245,7 +257,7 @@ function render_list_field(field) {
     return o;
 }
 
-function render_radio_field(field) {
+function render_radio_field(field, app_id) {
   var o = document.createElement('div');
   $.each(field['values'], function(i, item) {
     var op = document.createElement('radio');
@@ -260,7 +272,7 @@ function render_radio_field(field) {
   return o;
 }
 
-function render_checkbox_field(field) {
+function render_checkbox_field(field, app_id) {
   var o = document.createElement('div');
   $.each(field['values'], function(i, item) {
     var op = document.createElement('input');
@@ -277,7 +289,37 @@ function render_checkbox_field(field) {
 }
 
 function call_function(app_id, form_data, callback_name) {
-  var callback = (res) => { console.log(res); $('#res_'+app_id).append(res) };
+  var callback = (res) => {
+    console.log(res);
+    var ele = $('#res_'+app_id);
+    var type = ele[0].nodeName;
+    console.log(type);
+    if(type == 'TEXTAREA') {
+      ele.append(res)
+    } else if(type == 'TABLE') {
+      if(ele[0].children.length == 0) {
+        // this is the header row
+        var thead = document.createElement("thead");
+        var tr = document.createElement("tr");
+        res.forEach( (h) => {
+          var ch = document.createElement("th");
+          ch.innerText = h;
+          tr.appendChild(ch)
+        })
+        thead.appendChild(tr);
+        ele[0].appendChild(thead);
+      } else {
+        // this is the header row
+        var tr = document.createElement("tr");
+        res.forEach( (d) => {
+          var dc = document.createElement("td");
+          dc.innerText = d;
+          tr.appendChild(dc)
+        })
+        ele[0].appendChild(tr);
+      }
+    }
+  };
   call_function_callback(app_id, form_data, callback_name, callback);
 }
 
