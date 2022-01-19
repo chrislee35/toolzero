@@ -136,6 +136,8 @@ function open_app_tab(app_id, name, fields, result_type) {
   } else if (result_type['type'] == 'table') {
     var r = document.createElement('table');
     r.setAttribute('id', 'res_'+app_id);
+    r.appendChild(document.createElement("thead"));
+    r.appendChild(document.createElement("tbody"));
     d.appendChild(r);
   }
   $("#app_tabs").append(d);
@@ -290,33 +292,33 @@ function render_checkbox_field(field, app_id) {
 
 function call_function(app_id, form_data, callback_name) {
   var callback = (res) => {
-    console.log(res);
     var ele = $('#res_'+app_id);
     var type = ele[0].nodeName;
-    console.log(type);
     if(type == 'TEXTAREA') {
-      ele.append(res)
+      if(res != undefined) {
+        ele.append(res)
+      }
     } else if(type == 'TABLE') {
-      if(ele[0].children.length == 0) {
-        // this is the header row
-        var thead = document.createElement("thead");
-        var tr = document.createElement("tr");
-        res.forEach( (h) => {
-          var ch = document.createElement("th");
-          ch.innerText = h;
-          tr.appendChild(ch)
-        })
+      if(res == undefined) {
+        ele.dataTable();
+        return;
+      }
+      var thead = $('#res_'+app_id+' thead')[0];
+      var tbody = $('#res_'+app_id+' tbody')[0];
+      var cell = 'td';
+      if(thead.children.length == 0) {
+        cell = 'th'
+      }
+      var tr = document.createElement("tr");
+      res.forEach( (item) => {
+        var c = document.createElement(cell);
+        c.innerText = item;
+        tr.appendChild(c)
+      })
+      if(thead.children.length == 0) {
         thead.appendChild(tr);
-        ele[0].appendChild(thead);
       } else {
-        // this is the header row
-        var tr = document.createElement("tr");
-        res.forEach( (d) => {
-          var dc = document.createElement("td");
-          dc.innerText = d;
-          tr.appendChild(dc)
-        })
-        ele[0].appendChild(tr);
+        tbody.appendChild(tr);
       }
     }
   };
@@ -362,6 +364,7 @@ function call_callback(url, app_id, form_data, callback) {
         }
       });
       eventSource.addEventListener('leave', event => {
+        callback(undefined);
         eventSource.disconnect();
       });
       eventSource.connect();

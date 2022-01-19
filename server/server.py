@@ -345,6 +345,9 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             buf = ("data: %s\n\n" % json.dumps(res)).encode('UTF-8')
             self.wfile.write(buf)
             self.wfile.flush()
+        buf = ("data: %s\n\n" % json.dumps({'status': 'finished', 'results': None})).encode('UTF-8')
+        self.wfile.write(buf)
+        self.wfile.flush()
         active_callbacks.pop(cb['callback_id'])
         cb['status'] = 'finished'
 
