@@ -124,22 +124,31 @@ function open_app_tab(app_id, name, fields, result_type) {
     var r = render_field_row(field, app_id);
     t.appendChild(r);
   });
-  // add the div to the tab
   f.appendChild(t);
+  // append the form to the div
   d.appendChild(f);
+  // create the result widget
   if(result_type['type'] == 'textarea') {
     var r = document.createElement('textarea');
     r.setAttribute('rows', 10);
     r.setAttribute('cols', 40);
     r.setAttribute('id', 'res_'+app_id);
+    r.setAttribute('data-result-type', 'textarea');
     d.appendChild(r);
   } else if (result_type['type'] == 'table') {
     var r = document.createElement('table');
     r.setAttribute('id', 'res_'+app_id);
+    r.setAttribute('data-result-type', 'table');
     r.appendChild(document.createElement("thead"));
     r.appendChild(document.createElement("tbody"));
     d.appendChild(r);
+  } else if (result_type['type'] == 'tree') {
+    var r = document.createElement('div');
+    r.setAttribute('id', 'res_'+app_id);
+    r.setAttribute('data-result-type', 'tree');
+    d.appendChild(r);
   }
+  // add the div to the tab
   $("#app_tabs").append(d);
   // add the tab
   var li = document.createElement('li');
@@ -150,7 +159,8 @@ function open_app_tab(app_id, name, fields, result_type) {
 
   $("#apps_list").append(li);
   $("#app_tabs").tabs("refresh");
-  //$("#app_tabs").tabs("option", "active", "1");
+  // activate the last tab
+  $("#app_tabs").tabs("option", "active", "-1");
 }
 
 function render_field_row(field, app_id) {
@@ -293,12 +303,13 @@ function render_checkbox_field(field, app_id) {
 function call_function(app_id, form_data, callback_name) {
   var callback = (res) => {
     var ele = $('#res_'+app_id);
-    var type = ele[0].nodeName;
-    if(type == 'TEXTAREA') {
+    var type = ele[0].dataset.resultType;
+    console.log(type);
+    if(type == 'textarea') {
       if(res != undefined) {
         ele.append(res)
       }
-    } else if(type == 'TABLE') {
+    } else if(type == 'table') {
       if(res == undefined) {
         ele.dataTable();
         return;
@@ -320,9 +331,43 @@ function call_function(app_id, form_data, callback_name) {
       } else {
         tbody.appendChild(tr);
       }
+    } else if(type == 'tree') {
+      var tree_eles = render_tree(res);
+      ele[0].appendChild(tree_eles);
+      ele.jstree();
     }
   };
   call_function_callback(app_id, form_data, callback_name, callback);
+}
+
+function render_tree(res) {
+  if(typeof(res) == "object") {
+    var e = document.createElement("ul");
+    for(var k in res) {
+      if(typeof(k) == "number") {
+        // let's assume this is an array
+        var l = document.createElement("li");
+        l.appendChild(render_tree(res[k]));
+        e.appendChild(l);
+      } else {
+        var l = document.createElement("li");
+        l.classList.add('child_node');
+        var label = document.createElement("span");
+        label.classList.add('tree_key');
+        label.innerText = k;
+        l.appendChild(label);
+        l.appendChild(render_tree(res[k]));
+        e.appendChild(l);
+      }
+    }
+    return e;
+  } else {
+    var e = document.createElement("ul");
+    var l = document.createElement("li");
+    l.innerText = res;
+    e.appendChild(l);
+    return e;
+  }
 }
 
 function call_function_callback(app_id, form_data, callback_name, callback) {
