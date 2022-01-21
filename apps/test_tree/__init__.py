@@ -20,7 +20,8 @@ class TestTreeApp(BaseTool):
         ]
 
         self.result_type = {
-            'type': 'tree'
+            'type': 'tree',
+            'callback': 'register_choice'
         }
 
     def fetch_data(self, url, **kwargs):
@@ -38,3 +39,7 @@ class TestTreeApp(BaseTool):
             key = d['name']+'-'+str(d['number'])
             tree_data[key] = d
         yield self.success(tree_data, 100)
+
+    def register_choice(self, data, **kwargs):
+        print("Tree item chosen: "+data)
+        yield self.success(data, 100)

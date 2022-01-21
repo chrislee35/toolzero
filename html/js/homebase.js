@@ -147,6 +147,9 @@ function open_app_tab(app_id, name, fields, result_type) {
     r.setAttribute('id', 'res_'+app_id);
     r.setAttribute('data-result-type', 'tree');
     d.appendChild(r);
+    if(result_type['callback']) {
+      r.setAttribute('data-callback-name', result_type['callback']);
+    }
   }
   // add the div to the tab
   $("#app_tabs").append(d);
@@ -300,11 +303,12 @@ function render_checkbox_field(field, app_id) {
   return o;
 }
 
+var last_event_time = 0;
+
 function call_function(app_id, form_data, callback_name) {
   var callback = (res) => {
     var ele = $('#res_'+app_id);
     var type = ele[0].dataset.resultType;
-    console.log(type);
     if(type == 'textarea') {
       if(res != undefined) {
         ele.append(res)
@@ -334,7 +338,37 @@ function call_function(app_id, form_data, callback_name) {
     } else if(type == 'tree') {
       var tree_eles = render_tree(res);
       ele[0].appendChild(tree_eles);
-      ele.jstree();
+
+      ele.jstree({
+        "plugins": ["search", "adv_search", "themes", "html_data"],
+        "search": { "case_insensitive": true, "show_only_matches": true }
+      });
+
+      if(ele[0].dataset.callbackName) {
+        console.log('setting up callback');
+        ele.on('changed.jstree', (e, data) => {
+          if(e['timeStamp'] > last_event_time) {
+            last_event_time = e['timeStamp'];
+            //console.log(data['node']['text']);
+            call_function_callback(app_id, JSON.stringify({'data': data['node']['text']}), ele[0].dataset.callbackName, null);
+          }
+        }).jstree(true);
+      }
+
+      if($("#res_"+app_id+" input").length == 0) {
+        var search_box = document.createElement("input");
+        search_box.onkeyup = () => {
+          ele.jstree("search", search_box.value);
+        };
+        search_box.type = 'text';
+        search_box.length = 30;
+
+        var search_div = document.createElement("div");
+        search_div.innerHTML = "Search: "
+        search_div.appendChild(search_box);
+
+        ele[0].prepend(search_div);
+      }
     }
   };
   call_function_callback(app_id, form_data, callback_name, callback);
@@ -351,11 +385,7 @@ function render_tree(res) {
         e.appendChild(l);
       } else {
         var l = document.createElement("li");
-        l.classList.add('child_node');
-        var label = document.createElement("span");
-        label.classList.add('tree_key');
-        label.innerText = k;
-        l.appendChild(label);
+        l.innerText = k;
         l.appendChild(render_tree(res[k]));
         e.appendChild(l);
       }
@@ -403,7 +433,9 @@ function call_callback(url, app_id, form_data, callback) {
       var eventSource = new EventSource2('/events/'+data['callback_id']);
       eventSource.addEventListener('message', event => {
         var data = JSON.parse(event.data);
-        callback(data['results']);
+        if(callback) {
+          callback(data['results']);
+        }
         if(data['progress']) {
           document.getElementById(app_id+'_progress').value = data['progress'];
         }
