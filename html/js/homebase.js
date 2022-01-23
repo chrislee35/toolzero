@@ -42,7 +42,6 @@ EventSource2.prototype = {
     }
 }
 
-
 $.getJSON( "listapps", function(data) {
   console.log(data);
   $.each(data['appslist'], function(i, app) {
@@ -146,6 +145,15 @@ function open_app_tab(app_id, name, fields, result_type) {
     var r = document.createElement('div');
     r.setAttribute('id', 'res_'+app_id);
     r.setAttribute('data-result-type', 'tree');
+    d.appendChild(r);
+    if(result_type['callback']) {
+      r.setAttribute('data-callback-name', result_type['callback']);
+    }
+  } else if (result_type['type'] == 'graph') {
+    var r = document.createElement('div');
+    r.setAttribute('id', 'res_'+app_id);
+    r.setAttribute('data-result-type', 'graph');
+    r.style.height = '500px';
     d.appendChild(r);
     if(result_type['callback']) {
       r.setAttribute('data-callback-name', result_type['callback']);
@@ -336,6 +344,7 @@ function call_function(app_id, form_data, callback_name) {
         tbody.appendChild(tr);
       }
     } else if(type == 'tree') {
+      if(res == null) { return; }
       var tree_eles = render_tree(res);
       ele[0].appendChild(tree_eles);
 
@@ -368,6 +377,24 @@ function call_function(app_id, form_data, callback_name) {
         search_div.appendChild(search_box);
 
         ele[0].prepend(search_div);
+      }
+    } else if(type == 'graph') {
+      if(res == null) { return; }
+      if(res['options']) {
+        var options = res['options'];
+        delete res['options'];
+      }
+      res['nodes'] = new vis.DataSet(res['nodes']);
+      res['edges'] = new vis.DataSet(res['edges']);
+      var network = new vis.Network(ele[0], res, options);
+
+      if(ele[0].dataset.callbackName) {
+        console.log('setting up callback');
+        network.on("click", function (params) {
+          var node = res['nodes'].get(params['nodes'][0]);
+          var nodename = node['label'];
+          call_function_callback(app_id, JSON.stringify({'data': nodename}), ele[0].dataset.callbackName, null);
+        });
       }
     }
   };
