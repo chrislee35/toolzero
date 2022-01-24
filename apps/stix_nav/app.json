@@ -1,0 +1,6 @@
+{
+  "name": "STIX Navigator",
+  "folder": "STIX",
+  "type": "jspy",
+  "desc": "Navigate through a STIX bundle"
+}

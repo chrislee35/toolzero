@@ -1,0 +1,21 @@
+<link rel="stylesheet" type="text/css" href="app_html/stix_nav/$app_id/stix_nav.css" />
+
+<div id='app_$app_id'>
+  <form name='$app_id'>
+    STIX Filename
+    <input type='text' name='filename' length='40' value='/home/chris/code/stix/enterprise-attack-10.1.json' />
+    <input type='button' value='Load STIX File' onclick='stixnav_$app_id.load_stix_file(this.form.filename.value); return false;' />
+    <br />
+    Entity Type
+    <select name='entity_types' id='entity_types_$app_id' onchange='stixnav_$app_id.load_entity_type(this.value)'>
+    </select>
+  </form>
+  <table id='res_$app_id'>
+    <thead>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+</div>
+
+<script type='text/javascript' src='app_html/stix_nav/$app_id/stix_nav.js'></script>

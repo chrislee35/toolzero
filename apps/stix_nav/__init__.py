@@ -1,0 +1,1 @@
+from .stixapp import StixApp
