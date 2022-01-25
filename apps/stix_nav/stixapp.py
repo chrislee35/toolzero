@@ -54,6 +54,46 @@ class StixApp(BaseTool):
             yield self.error("Could not find entity with id")
         yield self.success([json.loads(x.serialize()) for x in self.relationships(item)])
 
+    def get_shape_and_color_for_type(self, etype):
+        if etype == 'intrusion-set':
+            return('box', 'red')
+        else:
+            return('box', 'gray')
+
+    def get_colors_for_relationship(self, relationship_type):
+        if relationship_type == 'uses':
+            return('blue', 'white')
+        else:
+            return('black', 'gray')
+
+    def get_relationship_graph(self, id, hops, **kwargs):
+        item = self.memstore.get(id)
+        if not item:
+            yield self.error("Could not find entity with id")
+        rels = self.memstore.relationships(item)
+        node_refs = list(set([x['target_ref'] for x in rels] + [x['source_ref'] for x in rels]))
+        node_names = [(self.memstore.get(x)['name'], self.memstore.get(x)['type']) for x in node_refs]
+        # TODO: expand relationship #hops out.
+        nodes = []
+        for idx, rec in enumerate(node_names):
+            name, etype = rec
+            shape, color = self.get_shape_and_color_for_type(etype)
+            nodes.append({'id': idx, 'label': name, 'shape': shape, 'color': color})
+
+        edges = []
+        for rel in rels:
+            sidx = node_refs.index(rel['source_ref'])
+            tidx = node_refs.index(rel['target_ref'])
+            label = rel['relationship_type']
+            line_color, font_color = self.get_colors_for_relationship(label)
+            edges.append({'from': sidx, 'to': tidx, 'arrows': 'to', 'label': label, 'font': {'strokeColor': font_color}, 'color': {'color': line_color}})
+
+        graph = {
+            'nodes': nodes,
+            'edges': edges
+        }
+        yield self.success(graph, 100)
+
     def export_website(self, **kwargs):
         filename = 'stix_website.zip'
         zf = zipfile.ZipFile(filename, mode='w', compression=zipfile.ZIP_DEFLATED, compresslevel=5)

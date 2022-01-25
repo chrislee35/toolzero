@@ -1,6 +1,7 @@
 <link rel="stylesheet" type="text/css" href="app_html/stix_nav/$app_id/stix_nav.css" />
 
 <div id='app_$app_id'>
+  <progress id='$app_id_progress' min='0' max='100' value='0'></progress>
   <form name='$app_id'>
     STIX Filename
     <input type='text' name='filename' length='40' value='/home/chris/code/stix/enterprise-attack-10.1.json' />
@@ -17,5 +18,7 @@
     </tbody>
   </table>
 </div>
+
+<div id='entity_display_$app_id'></div>
 
 <script type='text/javascript' src='app_html/stix_nav/$app_id/stix_nav.js'></script>
