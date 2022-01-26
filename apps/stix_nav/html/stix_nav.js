@@ -68,7 +68,7 @@ class StixNav_$app_id {
       var graph_div = document.createElement('div');
       graph_div.id = "graph_$app_id";
       graph_div.style.height = '500px';
-      document.getElementById('entity_display_$app_id').appendChild(graph_div);
+      $('#entity_display_$app_id').append(graph_div);
       var network = new vis.Network(graph_div, graph);
     });
   }

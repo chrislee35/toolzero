@@ -86,11 +86,23 @@ class StixApp(BaseTool):
             tidx = node_refs.index(rel['target_ref'])
             label = rel['relationship_type']
             line_color, font_color = self.get_colors_for_relationship(label)
-            edges.append({'from': sidx, 'to': tidx, 'arrows': 'to', 'label': label, 'font': {'strokeColor': font_color}, 'color': {'color': line_color}})
-
+            edges.append({'from': sidx, 'to': tidx,  'label': label, 'arrows': 'to', 'font': {'strokeColor': font_color}, 'color': {'color': line_color}})
+            
         graph = {
             'nodes': nodes,
-            'edges': edges
+            'edges': edges,
+            'options': {
+                'nodes': {
+                    'shape': 'circle',
+                    'font': {
+                        'size': 15,
+                        'color': "black",
+                        'face': "courier",
+                        'strokeWidth': 3,
+                        'strokeColor': "#ffffff",
+                    },
+                }
+            }
         }
         yield self.success(graph, 100)
 
