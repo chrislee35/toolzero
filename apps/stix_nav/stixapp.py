@@ -23,8 +23,7 @@ class StixApp(BaseTool):
     def load_stix_file(self, filename, **kwargs):
         if not self.memstore:
             self.memstore = stix2.MemoryStore()
-
-        self.memstore.load_from_file(filename)
+            self.memstore.load_from_file(filename)
         yield self.success(self.valid_types)
 
     def get_type(self, entity_type, **kwargs):
@@ -87,7 +86,7 @@ class StixApp(BaseTool):
             label = rel['relationship_type']
             line_color, font_color = self.get_colors_for_relationship(label)
             edges.append({'from': sidx, 'to': tidx,  'label': label, 'arrows': 'to', 'font': {'strokeColor': font_color}, 'color': {'color': line_color}})
-            
+
         graph = {
             'nodes': nodes,
             'edges': edges,

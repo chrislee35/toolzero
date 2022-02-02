@@ -17,19 +17,19 @@ class StixNav_$app_id {
   }
   load_entity_type(entity_type) {
     var data = { 'entity_type': entity_type }
+    table_$app_id._fnClearTable();
     call_function_callback("$app_id", JSON.stringify(data), 'get_type', (entities) => {
       if(entities == null) {
-        $("#res_$app_id").dataTable({"lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]});
         $("#res_$app_id tbody tr").click( (event) => {
           this.view_entity(event.currentTarget.dataset.id);
         });
         return;
       }
-      $("#res_$app_id thead").empty();
-      $("#res_$app_id thead").append("<tr><th>Name</th><th>External Id</th></tr>");
+
       entities.forEach( (row) => {
-        $("#res_$app_id tbody").append("<tr data-id="+row[0]+"><td>"+row[1]+"</td><td>"+row[2]+"</td></tr>");
+        table_$app_id._fnAddData(row);
       });
+      table_$app_id._fnReDraw();
     });
   }
   view_entity(id) {
@@ -76,3 +76,11 @@ class StixNav_$app_id {
 var debug;
 
 var stixnav_$app_id = new StixNav_$app_id();
+var table_$app_id = $("#res_$app_id").DataTable({
+  aoColumnDefs: [
+     { bVisible: false, aTargets: [0] }
+   ]
+});
+table_$app_id.click((event) => {
+  console.log(event.target.parentNode);
+});
