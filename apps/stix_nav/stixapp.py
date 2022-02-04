@@ -71,18 +71,23 @@ class StixApp(BaseTool):
             yield self.error("Could not find entity with id")
         rels = self.memstore.relationships(item)
         node_refs = list(set([x['target_ref'] for x in rels] + [x['source_ref'] for x in rels]))
-        node_names = [(self.memstore.get(x)['name'], self.memstore.get(x)['type']) for x in node_refs]
+        node_names = []
+        for x in node_refs:
+            item = self.memstore.get(x)
+            node_names.append((item['name'], item['type'], item['id']))
         # TODO: expand relationship #hops out.
         nodes = []
         for idx, rec in enumerate(node_names):
-            name, etype = rec
+            name, etype, id = rec
             shape, color = self.get_shape_and_color_for_type(etype)
-            nodes.append({'id': idx, 'label': name, 'shape': shape, 'color': color})
+            nodes.append({'id': id, 'label': name, 'shape': shape, 'color': color})
 
         edges = []
         for rel in rels:
             sidx = node_refs.index(rel['source_ref'])
             tidx = node_refs.index(rel['target_ref'])
+            sidx = rel['source_ref']
+            tidx = rel['target_ref']
             label = rel['relationship_type']
             line_color, font_color = self.get_colors_for_relationship(label)
             edges.append({'from': sidx, 'to': tidx,  'label': label, 'arrows': 'to', 'font': {'strokeColor': font_color}, 'color': {'color': line_color}})

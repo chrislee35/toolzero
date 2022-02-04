@@ -5,7 +5,6 @@ class StixNav_$app_id {
       this.render_valid_types);
   }
   render_valid_types(valid_types) {
-    console.log(valid_types)
     if(valid_types == null) {
       return;
     }
@@ -16,20 +15,20 @@ class StixNav_$app_id {
     });
   }
   load_entity_type(entity_type) {
-    var data = { 'entity_type': entity_type }
-    table_$app_id._fnClearTable();
+    var data = { 'entity_type': entity_type };
+    var tbody = $("#res_$app_id tbody");
+    tbody.empty();
     call_function_callback("$app_id", JSON.stringify(data), 'get_type', (entities) => {
       if(entities == null) {
-        $("#res_$app_id tbody tr").click( (event) => {
+        $("#res_$app_id tbody tr").click((event) => {
           this.view_entity(event.currentTarget.dataset.id);
         });
         return;
       }
 
-      entities.forEach( (row) => {
-        table_$app_id._fnAddData(row);
+      entities.forEach((row) => {
+        tbody.append("<tr data-id='"+row[0]+"'><td>"+row[1]+"</td><td>"+row[2]+"</td></tr>");
       });
-      table_$app_id._fnReDraw();
     });
   }
   view_entity(id) {
@@ -61,26 +60,28 @@ class StixNav_$app_id {
     });
   }
   relationships(id) {
-    var data = { 'id': id, 'hops': 1 }
-    call_function_callback("$app_id", JSON.stringify(data), 'get_relationship_graph', (graph) => {
-      if(graph == null) {return;}
-      console.log(graph);
-      var graph_div = document.createElement('div');
-      graph_div.id = "graph_$app_id";
-      graph_div.style.height = '500px';
-      $('#entity_display_$app_id').append(graph_div);
-      var network = new vis.Network(graph_div, graph);
+    var data = {'id': id, 'hops': 1}
+    call_function_callback("$app_id", JSON.stringify(data), 'get_relationship_graph', this.relationships_callback);
+  }
+  relationships_callback(graph) {
+    if(graph == null) {return;}
+    console.log(graph);
+    $('#entity_display_$app_id').empty();
+    var graph_div = document.createElement('div');
+    graph_div.id = "graph_$app_id";
+    graph_div.style.height = '500px';
+    $('#entity_display_$app_id').append(graph_div);
+    var network = new vis.Network(graph_div, graph);
+
+    network.on("click", function (params) {
+      var nodename = params['nodes'][0];
+      if(nodename == null) {return;}
+      console.log(nodename);
+      var data = {'id': nodename, 'hops': 1};
+      call_function_callback("$app_id", JSON.stringify(data), 'get_relationship_graph', stixnav_$app_id.relationships_callback);
     });
   }
 }
 var debug;
 
 var stixnav_$app_id = new StixNav_$app_id();
-var table_$app_id = $("#res_$app_id").DataTable({
-  aoColumnDefs: [
-     { bVisible: false, aTargets: [0] }
-   ]
-});
-table_$app_id.click((event) => {
-  console.log(event.target.parentNode);
-});
