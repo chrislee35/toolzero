@@ -5,24 +5,26 @@ $.getScript("js/open_app.js", function () {console.log('loaded open_app');})
 $.getScript("js/callbacks.js", function () {console.log('loaded callbacks');})
 $.getScript("js/utils.js", function () {console.log('loaded utils');})
 
+// on load, list all the apps by querying the
+// server for the list of apps
 $.getJSON( "listapps", function(data) {
-  console.log(data);
   $.each(data['appslist'], function(i, app) {
-    var li = document.createElement('li');
-    var a = document.createElement('a');
-    a.href = '#';
-    if(app['type'] == 'py') {
-      a.onclick = function() { open_app(app['path']) };
-    } else if (app['type'] == 'js') {
-      a.onclick = function() { open_jsapp(app['path']) };
-    } else if (app['type'] == 'jspy') {
-      a.onclick = function() { open_jspyapp(app['path']) };
-    }
-    a.innerText = app['name'];
-    a.title = app['desc'];
-    li.append(a);
+    var li = render_app_launcher(app)
     $('#app_list').append(li);
   });
 });
+
+// render the app launcher
+function render_app_launcher(app) {
+  var li = $('<li />');
+  var a = $('<a />', {
+    href: '#',
+    title: app['title'],
+    click: function() { open_app(app['type'], app['path']); }
+  });
+  a.text(app['name']);
+  li.append(a);
+  return(li);
+}
 
 $("#app_tabs").tabs()
