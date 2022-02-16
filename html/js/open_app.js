@@ -55,7 +55,9 @@ function open_app_tab(app_id, name, fields, result_type) {
   d.append(p);
 
   // create the form
-  var f = $('<form />');
+  var f = $('<form />', {
+    name: app_id
+  });
   var t = $('<table />', {
     name: app_id
   });
@@ -80,7 +82,7 @@ function open_app_tab(app_id, name, fields, result_type) {
   h.text(name);
   li.append(h);
   $("#apps_list").append(li);
-  $("#app_tabs").append(page);
+
   $("#app_tabs").tabs("refresh");
   // activate the last tab
   $("#app_tabs").tabs("option", "active", "-1");

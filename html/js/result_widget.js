@@ -1,45 +1,40 @@
 function render_result_widget(app_id, result_type) {
   if(result_type['type'] == 'textarea') {
-    var r = document.createElement('textarea');
-    r.setAttribute('rows', 10);
-    r.setAttribute('cols', 40);
-    r.setAttribute('id', 'res_'+app_id);
-    r.setAttribute('data-result-type', 'textarea');
-    if(result_type['callback']) {
-      r.setAttribute('data-callback-name', result_type['callback']);
-    }
+    var r = $('<textarea />', {
+      rows: 10,
+      cols: 40,
+      id: 'res_'+app_id,
+      'data-result-type': 'textarea',
+      'data-callback-name': result_type['callback']
+    });
   } else if (result_type['type'] == 'table') {
-    var r = document.createElement('table');
-    r.setAttribute('id', 'res_'+app_id);
-    r.setAttribute('data-result-type', 'table');
-    r.appendChild(document.createElement("thead"));
-    r.appendChild(document.createElement("tbody"));
-    if(result_type['callback']) {
-      r.setAttribute('data-callback-name', result_type['callback']);
-    }
+    var r = $('<table />', {
+      id: 'res_'+app_id,
+      'data-result-type': 'table',
+      'data-callback-name': result_type['callback']
+    })
+    r.append($('<thead/>'));
+    r.append($('<tbody/>'));
   } else if (result_type['type'] == 'tree') {
-    var r = document.createElement('div');
-    r.setAttribute('id', 'res_'+app_id);
-    r.setAttribute('data-result-type', 'tree');
-    if(result_type['callback']) {
-      r.setAttribute('data-callback-name', result_type['callback']);
-    }
+    var r = $('<div />', {
+      id: 'res_'+app_id,
+      'data-result-type': 'tree',
+      'data-callback-name': result_type['callback']
+    })
   } else if (result_type['type'] == 'graph') {
-    var r = document.createElement('div');
-    r.setAttribute('id', 'res_'+app_id);
-    r.setAttribute('data-result-type', 'graph');
-    r.style.height = '500px';
-    if(result_type['callback']) {
-      r.setAttribute('data-callback-name', result_type['callback']);
-    }
+    var r = $('<div />', {
+      id: 'res_'+app_id,
+      'data-result-type': 'graph',
+      'data-callback-name': result_type['callback']
+    });
+    r.css('height', '500px');
   } else if (result_type['type'] == 'chart') {
-    var r = document.createElement('canvas');
-    r.setAttribute('id', 'res_'+app_id);
-    r.setAttribute('data-result-type', 'chart');
-    r.style.height = '500px';
-    if(result_type['callback']) {
-      r.setAttribute('data-callback-name', result_type['callback']);
-    }
+    var r = $('<canvas />', {
+      id: 'res_'+app_id,
+      'data-result-type': 'chart',
+      'data-callback-name': result_type['callback']
+    })
+    r.css('height', '500px');
   }
   return r
 }
@@ -61,16 +56,16 @@ function table_callback(app_id, ele, res) {
   if(thead.children.length == 0) {
     cell = 'th'
   }
-  var tr = document.createElement("tr");
+  var tr = $("<tr/>");
   res.forEach( (item) => {
-    var c = document.createElement(cell);
-    c.innerText = item;
-    tr.appendChild(c)
+    var c = $('<'+cell+'/>');
+    c.text(item);
+    tr.append(c)
   })
   if(thead.children.length == 0) {
-    thead.appendChild(tr);
+    thead.append(tr);
   } else {
-    tbody.appendChild(tr);
+    tbody.append(tr);
     if(ele[0].dataset.callbackName) {
       tr.onclick((e) => {
         call_function_callback(app_id, JSON.stringify({'data': res}), ele[0].dataset.callbackName, null);
@@ -79,10 +74,12 @@ function table_callback(app_id, ele, res) {
   }
 }
 
+var last_event_time = 0;
+
 function tree_callback(app_id, ele, res) {
   if(res == null) { return; }
   var tree_eles = render_tree(res);
-  ele[0].appendChild(tree_eles);
+  ele.append(tree_eles);
 
   ele.jstree({
     "plugins": ["search", "adv_search", "themes", "html_data"],
@@ -101,18 +98,19 @@ function tree_callback(app_id, ele, res) {
   }
 
   if($("#res_"+app_id+" input").length == 0) {
-    var search_box = document.createElement("input");
-    search_box.onkeyup = () => {
-      ele.jstree("search", search_box.value);
-    };
-    search_box.type = 'text';
-    search_box.length = 30;
+    var search_box = $("<input/>", {
+      type: 'text',
+      length: 30
+    });
+    search_box.on('keyup', () => {
+      ele.jstree("search", search_box.val());
+    });
 
-    var search_div = document.createElement("div");
-    search_div.innerHTML = "Search: "
-    search_div.appendChild(search_box);
+    var search_div = $("<div />");
+    search_div.text("Search: ")
+    search_div.append(search_box);
 
-    ele[0].prepend(search_div);
+    ele.prepend(search_div);
   }
 }
 
@@ -165,27 +163,20 @@ function call_function(app_id, form_data, callback_name) {
 }
 
 function render_tree(res) {
+  var e = $("<ul />");
   if(typeof(res) == "object") {
-    var e = document.createElement("ul");
     for(var k in res) {
-      if(typeof(k) == "number") {
-        // let's assume this is an array
-        var l = document.createElement("li");
-        l.appendChild(render_tree(res[k]));
-        e.appendChild(l);
-      } else {
-        var l = document.createElement("li");
-        l.innerText = k;
-        l.appendChild(render_tree(res[k]));
-        e.appendChild(l);
+      var l = $("<li />");
+      if(typeof(k) != "number") {
+        l.text(k);
       }
+      l.append(render_tree(res[k]));
+      e.append(l);
     }
-    return e;
   } else {
-    var e = document.createElement("ul");
-    var l = document.createElement("li");
-    l.innerText = res;
-    e.appendChild(l);
-    return e;
+    var l = $("<li />");
+    l.text(res);
+    e.append(l);
   }
+  return e;
 }

@@ -1,36 +1,38 @@
 function render_field_row(field, app_id) {
-  var tr = document.createElement('tr');
-  var label_td = document.createElement('th');
+  var tr = $('<tr />');
+  var label_td = $('<th />');
+  tr.append(label_td);
+
   if(field['label']) {
     if(field['key']) {
-      var l = document.createElement('label');
-      l.setAttribute('for', field['key']);
-      l.innerText = field['label'];
-      label_td.appendChild(l);
+      var l = $('<label/>', {
+        for: field['key']
+      });
+      l.text(field['label']);
+      label_td.append(l);
     } else {
-      label_td.innerText = field['label'];
+      label_td.text(field['label']);
     }
   }
-  tr.appendChild(label_td);
 
-  var field_td = document.createElement('td');
+  var field_td = $('<td />');
   if(field['type']) {
     if(field['type'] == 'button') {
-      field_td.appendChild(render_button(field, app_id));
+      field_td.append(render_button(field, app_id));
     } else if(field['type'] == 'text') {
-      field_td.appendChild(render_text_field(field, app_id));
+      field_td.append(render_text_field(field, app_id));
     } else if (field['type'] == 'password') {
-      field_td.appendChild(render_password_field(field, app_id));
+      field_td.append(render_password_field(field, app_id));
     } else if (field['type'] == 'list') {
-      field_td.appendChild(render_list_field(field, app_id));
+      field_td.append(render_list_field(field, app_id));
     } else if (field['type'] == 'radio') {
-      field_td.appendChild(render_radio_field(field, app_id));
+      field_td.append(render_radio_field(field, app_id));
     } else if (field['type'] == 'checkbox') {
-      field_td.appendChild(render_checkbox_field(field, app_id));
+      field_td.append(render_checkbox_field(field, app_id));
     }
   }
 
-  tr.appendChild(field_td);
+  tr.append(field_td);
   return tr;
 }
 
@@ -53,84 +55,98 @@ function form_to_json(formElem) {
 }
 
 function render_button(field, app_id) {
-  var o = document.createElement('input');
-  o.setAttribute('type', 'button');
-  o.setAttribute('value', field['text']);
+  var o = $('<input />', {
+    type: 'button',
+    value: field['text']
+  });
   var onclick = field['onclick'];
-  o.onclick = function(event) {
+
+  o.click(function(event) {
     var form_data = form_to_json(document.forms[app_id]);
     call_function(app_id, form_data, onclick);
-  };
+  });
   return o;
 }
 
 function render_text_field(field, app_id) {
-    var o = document.createElement('input');
-    o.setAttribute('type', 'text');
-    o.setAttribute('length', field['length'] || 20);
-    o.setAttribute('name', field['key'] || 'no_name');
-    o.setAttribute('value', field['default'] || '');
+    var o = $('<input />', {
+      type: 'text',
+      length: field['length'] || 20,
+      name: field['key'] || 'no_name',
+      value: field['default'] || ''
+    });
     if(field['onchange']) {
-      o.onchange = (event) => {
+      o.on('change', (event) => {
         var form_data = form_to_json(document.forms[app_id]);
         call_function(app_id, form_data, field['onchange']);
-      }
+      });
     }
     return o;
 }
 
 function render_password_field(field, app_id) {
-    var o = document.createElement('input');
-    o.setAttribute('type', 'password');
-    o.setAttribute('length', field['length'] || 20);
-    o.setAttribute('name', field['key'] || 'no_name');
-    o.setAttribute('value', field['default'] || '');
+    var o = $('<input />', {
+      type: 'password',
+      length: field['length'] || 20,
+      name: field['key'] || 'no_name',
+      value: field['default'] || ''
+    });
+    if(field['onchange']) {
+      o.on('change', (event) => {
+        var form_data = form_to_json(document.forms[app_id]);
+        call_function(app_id, form_data, field['onchange']);
+      });
+    }
     return o;
 }
 
 function render_list_field(field, app_id) {
-    var o = document.createElement('select');
-    o.name = field['key'] || 'no_name';
+    var o = $('<select />', {
+      name: field['key'] || 'no_name'
+    })
     $.each(field['values'], function(i, item) {
-      var op = document.createElement('option');
-      op.value = item;
-      op.innerHTML = item;
+      var op = $('<option/>', {
+        value: item
+      });
+      op.text(item);
       if(field['default'] == item) {
-        o.selectedIndex = i;
+        op.prop('selectedIndex', i);
       }
-      o.appendChild(op);
+      o.append(op);
     });
-
     return o;
 }
 
 function render_radio_field(field, app_id) {
-  var o = document.createElement('div');
+  var o = $('<div/>');
+
   $.each(field['values'], function(i, item) {
-    var op = document.createElement('radio');
-    op.value = item;
-    op.name = field['key'] || 'no_name';
-    op.innerHTML = item;
+    var op = $('<radio/>', {
+      value: item,
+      name: field['key'] || 'no_name'
+    });
+    op.text(item);
     if(field['default'] == item) {
-      op.setSelected();
+      op[0].setSelected();
     }
-    o.appendChild(op);
+    o.append(op);
   });
   return o;
 }
 
 function render_checkbox_field(field, app_id) {
-  var o = document.createElement('div');
+  var o = $('<div/>');
   $.each(field['values'], function(i, item) {
-    var op = document.createElement('input');
-    op.type = 'checkbox';
-    op.value = item;
-    op.name = field['key'] || 'no_name';
-    op.innerHTML = item;
+    var op = $('<input/>', {
+      type: 'checkbox',
+      value: item,
+      name: field['key'] || 'no_name'
+    });
+    op.text(item);
     if(field['default'] == item) {
-      op.setSelected();
+      op[0].setSelected();
     }
-    o.appendChild(op);
+    o.append(op);
   });
   return o;
 }

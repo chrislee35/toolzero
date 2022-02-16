@@ -14,8 +14,12 @@ class TestTreeApp(BaseTool):
                 'label': 'URL',
                 'key': 'url',
                 'type': 'text',
-                'default': 'https://www.chrisleephd.us/stuff/presidents.jso',
-                'onchange': 'fetch_data'
+                'default': 'https://www.chrisleephd.us/stuff/presidents.json'
+            },
+            {
+                'type': 'button',
+                'text': 'Submit',
+                'onclick': 'fetch_data'
             }
         ]
 
